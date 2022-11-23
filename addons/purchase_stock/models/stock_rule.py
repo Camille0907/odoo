@@ -269,7 +269,10 @@ class StockRule(models.Model):
         params values: values of procurements
         params origins: procuremets origins to write on the PO
         """
-        purchase_date = max(self._get_po_date(company_id, values), fields.Datetime.now())
+        purchase_date = min([fields.Datetime.from_string(value['date_planned']) - value['supplier']._get_delay_delta() for value in values])
+
+        purchase_date = (purchase_date - relativedelta(days=company_id.po_lead))
+
 
         # Since the procurements are grouped if they share the same domain for
         # PO but the PO does not exist. In this case it will create the PO from
@@ -310,10 +313,10 @@ class StockRule(models.Model):
             ('company_id', '=', company_id.id),
             ('user_id', '=', False),
         )
-        delta_days = self.env['ir.config_parameter'].sudo().get_param('purchase_stock.delta_days_merge')
-        if delta_days is not False:
-            procurement_date = fields.Date.to_date(values['date_planned']) - relativedelta(days=int(values['supplier'].delay) + company_id.po_lead)
-            delta_days = int(delta_days)
+        if values.get('orderpoint_id'):
+            delay_delta = relativedelta(days=values['supplier']._get_delay_days() + company_id.po_lead)
+            procurement_date = fields.Date.to_date(values['date_planned']) - delay_delta
+            delta_days = int(self.env['ir.config_parameter'].sudo().get_param('purchase_stock.delta_days_merge') or 0)
             domain += (
                 ('date_order', '<=', datetime.combine(procurement_date + relativedelta(days=delta_days), datetime.max.time())),
                 ('date_order', '>=', datetime.combine(procurement_date - relativedelta(days=delta_days), datetime.min.time()))
