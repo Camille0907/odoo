@@ -471,6 +471,10 @@ class StockWarehouseOrderpoint(models.Model):
             'group_id': group or self.group_id,
         }
 
+    def _get_procurement_datetime(self):
+        self.ensure_one()
+        return datetime.combine(self.lead_days_date, time.min)
+
     def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=None, raise_user_error=True):
         """ Create procurements based on orderpoints.
         :param bool use_new_cursor: if set, use a dedicated cursor and auto-commit after processing
@@ -484,43 +488,35 @@ class StockWarehouseOrderpoint(models.Model):
             if use_new_cursor:
                 cr = registry(self._cr.dbname).cursor()
                 self = self.with_env(self.env(cr=cr))
-            try:
-                orderpoints_batch = self.env['stock.warehouse.orderpoint'].browse(orderpoints_batch)
-                orderpoints_exceptions = []
-                while orderpoints_batch:
-                    procurements = []
-                    for orderpoint in orderpoints_batch:
-                        origins = orderpoint.env.context.get('origins', {}).get(orderpoint.id, False)
-                        if origins:
-                            origin = '%s - %s' % (orderpoint.display_name, ','.join(origins))
-                        else:
-                            origin = orderpoint.name
-                        if float_compare(orderpoint.qty_to_order, 0.0, precision_rounding=orderpoint.product_uom.rounding) == 1:
-                            date = datetime.combine(orderpoint.lead_days_date, time.min)
-                            values = orderpoint._prepare_procurement_values(date=date)
-                            procurements.append(self.env['procurement.group'].Procurement(
-                                orderpoint.product_id, orderpoint.qty_to_order, orderpoint.product_uom,
-                                orderpoint.location_id, orderpoint.name, origin,
-                                orderpoint.company_id, values))
+            orderpoints_batch = self.env['stock.warehouse.orderpoint'].browse(orderpoints_batch)
+            orderpoints_exceptions = []
+            while orderpoints_batch:
+                procurements = []
+                for orderpoint in orderpoints_batch:
+                    if float_compare(orderpoint.qty_to_order, 0.0, precision_rounding=orderpoint.product_uom.rounding) == 1:
+                        date = orderpoint._get_procurement_datetime()
+                        values = orderpoint._prepare_procurement_values(date=date)
+                        procurements.append(self.env['procurement.group'].Procurement(
+                            orderpoint.product_id, orderpoint.qty_to_order, orderpoint.product_uom,
+                            orderpoint.location_id, orderpoint.name, orderpoint.name,
+                            orderpoint.company_id, values))
 
-                    try:
-                        with self.env.cr.savepoint():
-                            self.env['procurement.group'].with_context(from_orderpoint=True).run(procurements, raise_user_error=raise_user_error)
-                    except ProcurementException as errors:
-                        for procurement, error_msg in errors.procurement_exceptions:
-                            orderpoints_exceptions += [(procurement.values.get('orderpoint_id'), error_msg)]
-                        failed_orderpoints = self.env['stock.warehouse.orderpoint'].concat(*[o[0] for o in orderpoints_exceptions])
-                        if not failed_orderpoints:
-                            _logger.error('Unable to process orderpoints')
-                            break
-                        orderpoints_batch -= failed_orderpoints
+                try:
+                    with self.env.cr.savepoint():
+                        self.env['procurement.group'].with_context(from_orderpoint=True).run(procurements, raise_user_error=raise_user_error)
+                except ProcurementException as errors:
+                    for procurement, error_msg in errors.procurement_exceptions:
+                        orderpoints_exceptions += [(procurement.values.get('orderpoint_id'), error_msg)]
+                    failed_orderpoints = self.env['stock.warehouse.orderpoint'].concat(*[o[0] for o in orderpoints_exceptions])
+                    if not failed_orderpoints:
+                        _logger.error('Unable to process orderpoints')
+                        break
+                    orderpoints_batch -= failed_orderpoints
 
-                    except OperationalError:
-                        if use_new_cursor:
-                            cr.rollback()
-                            continue
-                        else:
-                            raise
+                except OperationalError:
+                    if use_new_cursor:
+                        cr.rollback()
+                        continue
                     else:
                         orderpoints_batch._post_process_scheduler()
                         break
