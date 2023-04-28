@@ -48,3 +48,14 @@ class StockMoveLine(models.Model):
     def _assign_production_lot(self, lot):
         super()._assign_production_lot(lot)
         self.lot_id._update_date_values(self[0].expiration_date)
+
+    def _get_value_production_lot(self):
+        res = super()._get_value_production_lot()
+        if self.expiration_date:
+            res.update({
+                'expiration_date': self.expiration_date,
+                'use_date': self.expiration_date - datetime.timedelta(days=self.product_id.use_time),
+                'removal_date': self.expiration_date - datetime.timedelta(days=self.product_id.removal_time),
+                'alert_date': self.expiration_date - datetime.timedelta(days=self.product_id.alert_time),
+            })
+        return res

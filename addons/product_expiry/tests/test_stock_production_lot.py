@@ -30,7 +30,7 @@ class TestStockProductionLot(TestStockCommon):
     def test_00_stock_production_lot(self):
         """ Test Scheduled Task on lot with an alert_date in the past creates an activity """
 
-        # create product 
+        # create product
         self.productAAA = self.ProductObj.create({
             'name': 'Product AAA',
             'type': 'product',
@@ -61,7 +61,7 @@ class TestStockProductionLot(TestStockCommon):
             'location_id': self.supplier_location,
             'location_dest_id': self.stock_location
         })
-        
+
         self.assertEqual(picking_in.move_lines.state, 'draft', 'Wrong state of move line.')
         picking_in.action_confirm()
         self.assertEqual(picking_in.move_lines.state, 'assigned', 'Wrong state of move line.')
@@ -112,7 +112,7 @@ class TestStockProductionLot(TestStockCommon):
             ('res_id', '=', self.lot1_productAAA.id)
         ])
         self.assertEqual(activity_count, 0,"As activity is done, there shouldn't be any related activity")
-                
+
         # run the scheduler a third time
         self.env['stock.production.lot']._alert_date_exceeded()
 
@@ -127,9 +127,9 @@ class TestStockProductionLot(TestStockCommon):
     def test_01_stock_production_lot(self):
         """ Test Scheduled Task on lot with an alert_date in future does not create an activity """
 
-        # create product 
+        # create product
         self.productBBB = self.ProductObj.create({
-            'name': 'Product BBB', 
+            'name': 'Product BBB',
             'type': 'product',
             'tracking':'lot'
         })
@@ -155,7 +155,7 @@ class TestStockProductionLot(TestStockCommon):
             'picking_id': picking_in.id,
             'location_id': self.supplier_location,
             'location_dest_id': self.stock_location})
-        
+
         self.assertEqual(picking_in.move_lines.state, 'draft', 'Wrong state of move line.')
         picking_in.action_confirm()
         self.assertEqual(picking_in.move_lines.state, 'assigned', 'Wrong state of move line.')
@@ -183,7 +183,7 @@ class TestStockProductionLot(TestStockCommon):
     def test_02_stock_production_lot(self):
         """ Test Scheduled Task on lot without an alert_date does not create an activity """
 
-        # create product 
+        # create product
         self.productCCC = self.ProductObj.create({'name': 'Product CCC', 'type': 'product', 'tracking':'lot'})
 
         # create a new lot with with alert date in the past
@@ -202,7 +202,7 @@ class TestStockProductionLot(TestStockCommon):
             'picking_id': picking_in.id,
             'location_id': self.supplier_location,
             'location_dest_id': self.stock_location})
-        
+
         self.assertEqual(picking_in.move_lines.state, 'draft', 'Wrong state of move line.')
         picking_in.action_confirm()
         self.assertEqual(picking_in.move_lines.state, 'assigned', 'Wrong state of move line.')
@@ -240,17 +240,18 @@ class TestStockProductionLot(TestStockCommon):
         lot_form.company_id = self.env.company
         apple_lot = lot_form.save()
         # ...then checks date fields have the expected values.
+        exp_date = apple_lot.expiration_date
         self.assertAlmostEqual(
             today_date + timedelta(days=self.apple_product.expiration_time),
-            apple_lot.expiration_date, delta=time_gap)
+            exp_date, delta=time_gap)
         self.assertAlmostEqual(
-            today_date + timedelta(days=self.apple_product.use_time),
+            exp_date - timedelta(days=self.apple_product.use_time),
             apple_lot.use_date, delta=time_gap)
         self.assertAlmostEqual(
-            today_date + timedelta(days=self.apple_product.removal_time),
+            exp_date - timedelta(days=self.apple_product.removal_time),
             apple_lot.removal_date, delta=time_gap)
         self.assertAlmostEqual(
-            today_date + timedelta(days=self.apple_product.alert_time),
+            exp_date - timedelta(days=self.apple_product.alert_time),
             apple_lot.alert_date, delta=time_gap)
 
         difference = timedelta(days=20)
@@ -310,11 +311,11 @@ class TestStockProductionLot(TestStockCommon):
         self.assertAlmostEqual(
             apple_lot.expiration_date, expiration_date, delta=time_gap)
         self.assertAlmostEqual(
-            apple_lot.use_date, expiration_date - timedelta(days=5), delta=time_gap)
+            apple_lot.use_date, expiration_date - timedelta(days=self.apple_product.use_time), delta=time_gap)
         self.assertAlmostEqual(
-            apple_lot.removal_date, expiration_date - timedelta(days=2), delta=time_gap)
+            apple_lot.removal_date, expiration_date - timedelta(days=self.apple_product.removal_time), delta=time_gap)
         self.assertAlmostEqual(
-            apple_lot.alert_date, expiration_date - timedelta(days=6), delta=time_gap)
+            apple_lot.alert_date, expiration_date - timedelta(days=self.apple_product.alert_time), delta=time_gap)
 
     def test_04_2_expiration_date_on_receipt(self):
         """ Test we can set an expiration date on receipt even if all expiration
@@ -359,12 +360,12 @@ class TestStockProductionLot(TestStockCommon):
             apple_lot.expiration_date, expiration_date, delta=time_gap,
             msg="Must be define even if the product's `expiration_time` isn't set.")
         self.assertAlmostEqual(
-            apple_lot.use_date, expiration_date + timedelta(days=5), delta=time_gap)
+            apple_lot.use_date, expiration_date - timedelta(days=self.apple_product.use_time), delta=time_gap)
         self.assertAlmostEqual(
-            apple_lot.removal_date, expiration_date + timedelta(days=self.apple_product.removal_time), delta=time_gap,
+            apple_lot.removal_date, expiration_date - timedelta(days=self.apple_product.removal_time), delta=time_gap,
             msg="`removal_date` should always be calculated when an expiration date is defined")
         self.assertAlmostEqual(
-            apple_lot.alert_date, expiration_date + timedelta(days=4), delta=time_gap)
+            apple_lot.alert_date, expiration_date - timedelta(days=self.apple_product.alert_time), delta=time_gap)
 
     def test_05_confirmation_on_delivery(self):
         """ Test when user tries to delivery expired lot, he/she gets a
@@ -525,3 +526,65 @@ class TestStockProductionLot(TestStockCommon):
         })
 
         self.assertEqual(sml.expiration_date, exp_date)
+
+        exp_date = exp_date + relativedelta(days=10)
+        lot.expiration_date = exp_date
+        self.assertEqual(sml.expiration_date, exp_date)
+
+    def test_apply_lot_without_date_on_sml(self):
+        """
+        When assigning a lot to a SML, if the lot has no expiration date,
+        dates on lot and SML should be correctly set
+        """
+        #create lot without expiration date
+        lot = self.env['stock.production.lot'].create({
+            'name': 'Lot 1',
+            'product_id': self.apple_product.id,
+            'company_id': self.env.company.id,
+        })
+
+        sml = self.env['stock.move.line'].create({
+            'location_id': self.supplier_location,
+            'location_dest_id': self.stock_location,
+            'product_id': self.apple_product.id,
+            'qty_done': 3,
+            'product_uom_id': self.apple_product.uom_id.id,
+            'lot_id': lot.id,
+            'company_id': self.env.company.id,
+        })
+        today_date = datetime.today()
+        time_gap = timedelta(seconds=10)
+        exp_date = today_date + timedelta(days=self.apple_product.expiration_time)
+
+        self.assertAlmostEqual(sml.expiration_date, exp_date, delta=time_gap)
+
+        self.assertAlmostEqual(
+            lot.expiration_date, exp_date, delta=time_gap)
+        self.assertAlmostEqual(
+            lot.use_date, exp_date - timedelta(days=self.apple_product.use_time), delta=time_gap)
+        self.assertAlmostEqual(
+            lot.removal_date, exp_date - timedelta(days=self.apple_product.removal_time), delta=time_gap)
+        self.assertAlmostEqual(
+            lot.alert_date, exp_date - timedelta(days=self.apple_product.alert_time), delta=time_gap)
+
+    def test_apply_same_date_on_expiry_fields(self):
+        expiration_time = 10
+        self.apple_product.write({
+            'expiration_time': expiration_time,
+            'use_time': 0,
+            'removal_time': 0,
+            'alert_time': 0,
+        })
+
+        lot = self.env['stock.production.lot'].create({
+            'product_id': self.apple_product.id,
+            'company_id': self.env.company.id,
+        })
+
+        delta = timedelta(seconds=10)
+        expiration_date = datetime.today() + timedelta(days=expiration_time)
+        err_msg = "The time on the product is set to 0, it means that the corresponding date should be the same as the expiration one"
+        self.assertAlmostEqual(lot.expiration_date, expiration_date, delta=delta)
+        self.assertAlmostEqual(lot.use_date, expiration_date, delta=delta, msg=err_msg)
+        self.assertAlmostEqual(lot.removal_date, expiration_date, delta=delta, msg=err_msg)
+        self.assertAlmostEqual(lot.alert_date, expiration_date, delta=delta, msg=err_msg)
