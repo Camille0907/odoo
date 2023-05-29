@@ -353,6 +353,9 @@ class HolidaysType(models.Model):
                 for interval_from, interval_to, interval_allocations in future_allocation_intervals._items:
                     if interval_from.date() > search_date:
                         continue
+                    interval_allocations = interval_allocations.filtered('active')
+                    if not interval_allocations:
+                        continue
                     # If no end date to the allocation, consider the number of days remaining as infinite
                     employee_quantity_available = (
                         employee._get_work_days_data_batch(interval_from, interval_to, compute_leaves=False, domain=company_domain)[employee_id]
@@ -360,7 +363,7 @@ class HolidaysType(models.Model):
                         else {'days': float('inf'), 'hours': float('inf')}
                     )
                     for allocation in interval_allocations:
-                        if not allocation.active or allocation.date_from > search_date:
+                        if allocation.date_from > search_date:
                             continue
                         days_consumed = allocations_days_consumed[employee_id][holiday_status_id][allocation]
                         if allocation.type_request_unit in ['day', 'half_day']:
