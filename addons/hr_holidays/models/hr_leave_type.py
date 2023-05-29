@@ -347,19 +347,19 @@ class HolidaysType(models.Model):
                     fields.datetime.combine(date, time.max) + timedelta(days=5*365),
                     self.env['hr.leave'])])
                 search_date = date
-                for future_allocation_interval in future_allocation_intervals._items:
-                    if future_allocation_interval[0].date() > search_date:
+                for interval_from, interval_to, interval_allocations in future_allocation_intervals._items:
+                    if interval_from.date() > search_date:
                         continue
-                    employee_quantity_available = future_allocation_interval[2].employee_id._get_work_days_data_batch(
-                        future_allocation_interval[0],
-                        future_allocation_interval[1],
+                    employee_quantity_available = interval_allocations.employee_id._get_work_days_data_batch(
+                        interval_from,
+                        interval_to,
                         compute_leaves=False,
                         domain=company_domain)[employee_id]
-                    for allocation in future_allocation_interval[2]:
+                    for allocation in interval_allocations:
                         if not allocation.active or allocation.date_from > search_date:
                             continue
                         days_consumed = allocations_days_consumed[employee_id][holiday_status_id][allocation]
-                        if future_allocation_interval[1] != fields.datetime.combine(date, time.max) + timedelta(days=5*365):
+                        if interval_to != fields.datetime.combine(date, time.max) + timedelta(days=5*365):
                             quantity_available = employee_quantity_available
                         else:
                             # If no end date to the allocation, consider the number of days remaining as infinite
@@ -371,7 +371,7 @@ class HolidaysType(models.Model):
                             quantity_available = quantity_available['hours']
                             remaining_days_allocation = (allocation.number_of_hours_display - days_consumed['virtual_leaves_taken'])
                         if quantity_available <= remaining_days_allocation:
-                            search_date = future_allocation_interval[1].date() + timedelta(days=1)
+                            search_date = interval_to.date() + timedelta(days=1)
                         days_consumed['virtual_remaining_leaves'] += min(quantity_available, remaining_days_allocation)
                         days_consumed['max_leaves'] = allocation.number_of_days if allocation.type_request_unit in ['day', 'half_day'] else allocation.number_of_hours_display
                         days_consumed['remaining_leaves'] = days_consumed['max_leaves'] - days_consumed['leaves_taken']
