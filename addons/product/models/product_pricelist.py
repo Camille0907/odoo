@@ -613,39 +613,37 @@ class PricelistItem(models.Model):
         """
         self.ensure_one()
         product.ensure_one()
-        res = True
 
         is_product_template = product._name == 'product.template'
+
+        # The quantity condition is always applied and faster to check than the others
         if self.min_quantity and qty_in_product_uom < self.min_quantity:
-            res = False
+            return False
 
-        elif self.categ_id:
-            # Applied on a specific category
-            cat = product.categ_id
-            while cat:
-                if cat.id == self.categ_id.id:
-                    break
-                cat = cat.parent_id
-            if not cat:
-                res = False
-        else:
-            # Applied on a specific product template/variant
+        if self.applied_on == "2_product_category":
+            if not product.categ_id.parent_path.startswith(self.categ_id.parent_path):
+                return False
+
+        if self.applied_on == "1_product":
             if is_product_template:
-                if self.product_tmpl_id and product.id != self.product_tmpl_id.id:
-                    res = False
-                elif self.product_id and not (
-                    product.product_variant_count == 1
-                    and product.product_variant_id.id == self.product_id.id
-                ):
-                    # product self acceptable on template if has only one variant
-                    res = False
+                if self.product_tmpl_id != product:
+                    return False
             else:
-                if self.product_tmpl_id and product.product_tmpl_id.id != self.product_tmpl_id.id:
-                    res = False
-                elif self.product_id and product.id != self.product_id.id:
-                    res = False
+                if self.product_tmpl_id != product.product_tmpl_id:
+                    return False
 
-        return res
+        if self.applied_on == "0_product_variant":
+            if is_product_template:
+                # product self acceptable on template if it has only one variant
+                if product.product_variant_count != 1:
+                    return False
+                if self.product_id != product.product_variant_id:
+                    return False
+            else:
+                if self.product_id != product:
+                    return False
+
+        return True
 
     def _compute_price(self, price, price_uom, product, quantity=1.0, partner=False):
         """Compute the unit price of a product in the context of a pricelist application.
