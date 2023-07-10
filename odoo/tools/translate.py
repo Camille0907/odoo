@@ -1521,7 +1521,6 @@ class CodeTranslations:
     def __init__(self):
         # {(module_name, lang): {src: value}}
         self.python_translations = {}
-        # {(module_name, lang): {'message': [{'id': src, 'string': value}]}
         self.web_translations = {}
 
     @staticmethod
