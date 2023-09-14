@@ -86,67 +86,6 @@
     // Custom error class that wraps error that happen in the owl lifecycle
     class OwlError extends Error {
     }
-    // Maps fibers to thrown errors
-    const fibersInError = new WeakMap();
-    const nodeErrorHandlers = new WeakMap();
-    function _handleError(node, error) {
-        if (!node) {
-            return false;
-        }
-        const fiber = node.fiber;
-        if (fiber) {
-            fibersInError.set(fiber, error);
-        }
-        const errorHandlers = nodeErrorHandlers.get(node);
-        if (errorHandlers) {
-            let handled = false;
-            // execute in the opposite order
-            for (let i = errorHandlers.length - 1; i >= 0; i--) {
-                try {
-                    errorHandlers[i](error);
-                    handled = true;
-                    break;
-                }
-                catch (e) {
-                    error = e;
-                }
-            }
-            if (handled) {
-                return true;
-            }
-        }
-        return _handleError(node.parent, error);
-    }
-    function handleError(params) {
-        let { error } = params;
-        // Wrap error if it wasn't wrapped by wrapError (ie when not in dev mode)
-        if (!(error instanceof OwlError)) {
-            error = Object.assign(new OwlError(`An error occured in the owl lifecycle (see this Error's "cause" property)`), { cause: error });
-        }
-        const node = "node" in params ? params.node : params.fiber.node;
-        const fiber = "fiber" in params ? params.fiber : node.fiber;
-        if (fiber) {
-            // resets the fibers on components if possible. This is important so that
-            // new renderings can be properly included in the initial one, if any.
-            let current = fiber;
-            do {
-                current.node.fiber = current;
-                current = current.parent;
-            } while (current);
-            fibersInError.set(fiber.root, error);
-        }
-        const handled = _handleError(node, error);
-        if (!handled) {
-            console.warn(`[Owl] Unhandled error. Destroying the root component`);
-            try {
-                node.app.destroy();
-            }
-            catch (e) {
-                console.error(e);
-            }
-            throw error;
-        }
-    }
 
     const { setAttribute: elemSetAttribute, removeAttribute } = Element.prototype;
     const tokenList = DOMTokenList.prototype;
@@ -774,12 +713,7 @@
                     info.push({ type: "child", idx: index });
                     el = document.createTextNode("");
                 }
-                const attrs = node.attributes;
-                const ns = attrs.getNamedItem("block-ns");
-                if (ns) {
-                    attrs.removeNamedItem("block-ns");
-                    currentNS = ns.value;
-                }
+                currentNS || (currentNS = node.namespaceURI);
                 if (!el) {
                     el = currentNS
                         ? document.createElementNS(currentNS, tagName)
@@ -795,6 +729,7 @@
                         const fragment = document.createElement("template").content;
                         fragment.appendChild(el);
                     }
+                    const attrs = node.attributes;
                     for (let i = 0; i < attrs.length; i++) {
                         const attrName = attrs[i].name;
                         const attrValue = attrs[i].value;
@@ -1604,6 +1539,68 @@
             vnode.beforeRemove();
         }
         vnode.remove();
+    }
+
+    // Maps fibers to thrown errors
+    const fibersInError = new WeakMap();
+    const nodeErrorHandlers = new WeakMap();
+    function _handleError(node, error) {
+        if (!node) {
+            return false;
+        }
+        const fiber = node.fiber;
+        if (fiber) {
+            fibersInError.set(fiber, error);
+        }
+        const errorHandlers = nodeErrorHandlers.get(node);
+        if (errorHandlers) {
+            let handled = false;
+            // execute in the opposite order
+            for (let i = errorHandlers.length - 1; i >= 0; i--) {
+                try {
+                    errorHandlers[i](error);
+                    handled = true;
+                    break;
+                }
+                catch (e) {
+                    error = e;
+                }
+            }
+            if (handled) {
+                return true;
+            }
+        }
+        return _handleError(node.parent, error);
+    }
+    function handleError(params) {
+        let { error } = params;
+        // Wrap error if it wasn't wrapped by wrapError (ie when not in dev mode)
+        if (!(error instanceof OwlError)) {
+            error = Object.assign(new OwlError(`An error occured in the owl lifecycle (see this Error's "cause" property)`), { cause: error });
+        }
+        const node = "node" in params ? params.node : params.fiber.node;
+        const fiber = "fiber" in params ? params.fiber : node.fiber;
+        if (fiber) {
+            // resets the fibers on components if possible. This is important so that
+            // new renderings can be properly included in the initial one, if any.
+            let current = fiber;
+            do {
+                current.node.fiber = current;
+                current = current.parent;
+            } while (current);
+            fibersInError.set(fiber.root, error);
+        }
+        const handled = _handleError(node, error);
+        if (!handled) {
+            console.warn(`[Owl] Unhandled error. Destroying the root component`);
+            try {
+                node.app.destroy();
+            }
+            catch (e) {
+                console.error(e);
+            }
+            throw error;
+        }
     }
 
     function makeChildFiber(node, parent) {
@@ -3010,8 +3007,8 @@
                 values = keys;
             }
             else {
-                values = Object.keys(collection);
-                keys = Object.values(collection);
+                values = Object.values(collection);
+                keys = Object.keys(collection);
             }
         }
         else {
@@ -3856,7 +3853,7 @@
         createBlock(parentBlock, type, ctx) {
             const hasRoot = this.target.hasRoot;
             const block = new BlockDescription(this.target, type);
-            if (!hasRoot && !ctx.preventRoot) {
+            if (!hasRoot) {
                 this.target.hasRoot = true;
                 block.isRoot = true;
             }
@@ -3879,7 +3876,7 @@
             if (ctx.tKeyExpr) {
                 blockExpr = `toggler(${ctx.tKeyExpr}, ${blockExpr})`;
             }
-            if (block.isRoot && !ctx.preventRoot) {
+            if (block.isRoot) {
                 if (this.target.on) {
                     blockExpr = this.wrapWithEventCatcher(blockExpr, this.target.on);
                 }
@@ -4055,11 +4052,6 @@
             }
             // attributes
             const attrs = {};
-            const nameSpace = ast.ns || ctx.nameSpace;
-            if (nameSpace && isNewBlock) {
-                // specific namespace uri
-                attrs["block-ns"] = nameSpace;
-            }
             for (let key in ast.attrs) {
                 let expr, attrName;
                 if (key.startsWith("t-attf")) {
@@ -4175,7 +4167,10 @@
                 const idx = block.insertData(setRefStr, "ref");
                 attrs["block-ref"] = String(idx);
             }
-            const dom = xmlDoc.createElement(ast.tag);
+            const nameSpace = ast.ns || ctx.nameSpace;
+            const dom = nameSpace
+                ? xmlDoc.createElementNS(nameSpace, ast.tag)
+                : xmlDoc.createElement(ast.tag);
             for (const [attr, val] of Object.entries(attrs)) {
                 if (!(attr === "class" && val === "")) {
                     dom.setAttribute(attr, val);
@@ -4217,7 +4212,7 @@
                                 break;
                         }
                     }
-                    this.addLine(`let ${block.children.map((c) => c.varName)};`, codeIdx);
+                    this.addLine(`let ${block.children.map((c) => c.varName).join(", ")};`, codeIdx);
                 }
             }
             return block.varName;
@@ -4320,7 +4315,7 @@
                                 break;
                         }
                     }
-                    this.addLine(`let ${block.children.map((c) => c.varName)};`, codeIdx);
+                    this.addLine(`let ${block.children.map((c) => c.varName).join(", ")};`, codeIdx);
                 }
                 // note: this part is duplicated from end of compilemulti:
                 const args = block.children.map((c) => c.varName).join(", ");
@@ -4349,18 +4344,18 @@
             }
             this.addLine(`for (let ${loopVar} = 0; ${loopVar} < ${l}; ${loopVar}++) {`);
             this.target.indentLevel++;
-            this.addLine(`ctx[\`${ast.elem}\`] = ${vals}[${loopVar}];`);
+            this.addLine(`ctx[\`${ast.elem}\`] = ${keys}[${loopVar}];`);
             if (!ast.hasNoFirst) {
                 this.addLine(`ctx[\`${ast.elem}_first\`] = ${loopVar} === 0;`);
             }
             if (!ast.hasNoLast) {
-                this.addLine(`ctx[\`${ast.elem}_last\`] = ${loopVar} === ${vals}.length - 1;`);
+                this.addLine(`ctx[\`${ast.elem}_last\`] = ${loopVar} === ${keys}.length - 1;`);
             }
             if (!ast.hasNoIndex) {
                 this.addLine(`ctx[\`${ast.elem}_index\`] = ${loopVar};`);
             }
             if (!ast.hasNoValue) {
-                this.addLine(`ctx[\`${ast.elem}_value\`] = ${keys}[${loopVar}];`);
+                this.addLine(`ctx[\`${ast.elem}_value\`] = ${vals}[${loopVar}];`);
             }
             this.define(`key${this.target.loopLevel}`, ast.key ? compileExpr(ast.key) : loopVar);
             if (this.dev) {
@@ -4435,7 +4430,6 @@
                     block,
                     index,
                     forceNewBlock: !isTSet,
-                    preventRoot: ctx.preventRoot,
                     isLast: ctx.isLast && i === l - 1,
                 });
                 this.compileAST(child, subCtx);
@@ -4444,21 +4438,19 @@
                 }
             }
             if (isNewBlock) {
-                if (block.hasDynamicChildren) {
-                    if (block.children.length) {
-                        const code = this.target.code;
-                        const children = block.children.slice();
-                        let current = children.shift();
-                        for (let i = codeIdx; i < code.length; i++) {
-                            if (code[i].trimStart().startsWith(`const ${current.varName} `)) {
-                                code[i] = code[i].replace(`const ${current.varName}`, current.varName);
-                                current = children.shift();
-                                if (!current)
-                                    break;
-                            }
+                if (block.hasDynamicChildren && block.children.length) {
+                    const code = this.target.code;
+                    const children = block.children.slice();
+                    let current = children.shift();
+                    for (let i = codeIdx; i < code.length; i++) {
+                        if (code[i].trimStart().startsWith(`const ${current.varName} `)) {
+                            code[i] = code[i].replace(`const ${current.varName}`, current.varName);
+                            current = children.shift();
+                            if (!current)
+                                break;
                         }
-                        this.addLine(`let ${block.children.map((c) => c.varName)};`, codeIdx);
                     }
+                    this.addLine(`let ${block.children.map((c) => c.varName).join(", ")};`, codeIdx);
                 }
                 const args = block.children.map((c) => c.varName).join(", ");
                 this.insertBlock(`multi([${args}])`, block, ctx);
@@ -4472,22 +4464,21 @@
                 ctxVar = generateId("ctx");
                 this.addLine(`let ${ctxVar} = ${compileExpr(ast.context)};`);
             }
+            const isDynamic = INTERP_REGEXP.test(ast.name);
+            const subTemplate = isDynamic ? interpolate(ast.name) : "`" + ast.name + "`";
+            if (block && !forceNewBlock) {
+                this.insertAnchor(block);
+            }
+            block = this.createBlock(block, "multi", ctx);
             if (ast.body) {
                 this.addLine(`${ctxVar} = Object.create(${ctxVar});`);
                 this.addLine(`${ctxVar}[isBoundary] = 1;`);
                 this.helpers.add("isBoundary");
-                const subCtx = createContext(ctx, { preventRoot: true, ctxVar });
+                const subCtx = createContext(ctx, { ctxVar });
                 const bl = this.compileMulti({ type: 3 /* Multi */, content: ast.body }, subCtx);
                 if (bl) {
                     this.helpers.add("zero");
                     this.addLine(`${ctxVar}[zero] = ${bl};`);
-                }
-            }
-            const isDynamic = INTERP_REGEXP.test(ast.name);
-            const subTemplate = isDynamic ? interpolate(ast.name) : "`" + ast.name + "`";
-            if (block) {
-                if (!forceNewBlock) {
-                    this.insertAnchor(block);
                 }
             }
             const key = `key + \`${this.generateComponentKey()}\``;
@@ -4497,7 +4488,6 @@
                     this.staticDefs.push({ id: "call", expr: `app.callTemplate.bind(app)` });
                 }
                 this.define(templateVar, subTemplate);
-                block = this.createBlock(block, "multi", ctx);
                 this.insertBlock(`call(this, ${templateVar}, ${ctxVar}, node, ${key})`, block, {
                     ...ctx,
                     forceNewBlock: !block,
@@ -4506,7 +4496,6 @@
             else {
                 const id = generateId(`callTemplate_`);
                 this.staticDefs.push({ id, expr: `app.getTemplate(${subTemplate})` });
-                block = this.createBlock(block, "multi", ctx);
                 this.insertBlock(`${id}.call(this, ${ctxVar}, node, ${key})`, block, {
                     ...ctx,
                     forceNewBlock: !block,
@@ -4828,7 +4817,7 @@
     }
     function _parse(xml) {
         normalizeXML(xml);
-        const ctx = { inPreTag: false, inSVG: false };
+        const ctx = { inPreTag: false };
         return parseNode(xml, ctx) || { type: 0 /* Text */, value: "" };
     }
     function parseNode(node, ctx) {
@@ -4919,9 +4908,7 @@
         if (tagName === "pre") {
             ctx.inPreTag = true;
         }
-        const shouldAddSVGNS = ROOT_SVG_TAGS.has(tagName) && !ctx.inSVG;
-        ctx.inSVG = ctx.inSVG || shouldAddSVGNS;
-        const ns = shouldAddSVGNS ? "http://www.w3.org/2000/svg" : null;
+        let ns = !ctx.nameSpace && ROOT_SVG_TAGS.has(tagName) ? "http://www.w3.org/2000/svg" : null;
         const ref = node.getAttribute("t-ref");
         node.removeAttribute("t-ref");
         const nodeAttrsNames = node.getAttributeNames();
@@ -4983,6 +4970,9 @@
             else if (attr.startsWith("block-")) {
                 throw new OwlError(`Invalid attribute: '${attr}'`);
             }
+            else if (attr === "xmlns") {
+                ns = value;
+            }
             else if (attr !== "t-name") {
                 if (attr.startsWith("t-") && !attr.startsWith("t-att")) {
                     throw new OwlError(`Unknown QWeb directive: '${attr}'`);
@@ -4994,6 +4984,9 @@
                 attrs = attrs || {};
                 attrs[attr] = value;
             }
+        }
+        if (ns) {
+            ctx.nameSpace = ns;
         }
         const children = parseChildren(node, ctx);
         return {
@@ -5550,11 +5543,20 @@
         const codeGenerator = new CodeGenerator(ast, { ...options, hasSafeContext });
         const code = codeGenerator.generateCode();
         // template function
-        return new Function("app, bdom, helpers", code);
+        try {
+            return new Function("app, bdom, helpers", code);
+        }
+        catch (originalError) {
+            const { name } = options;
+            const nameStr = name ? `template "${name}"` : "anonymous template";
+            const err = new OwlError(`Failed to compile ${nameStr}: ${originalError.message}\n\ngenerated code:\nfunction(app, bdom, helpers) {\n${code}\n}`);
+            err.cause = originalError;
+            throw err;
+        }
     }
 
     // do not modify manually. This file is generated by the release script.
-    const version = "2.2.3";
+    const version = "2.2.5";
 
     // -----------------------------------------------------------------------------
     //  Scheduler
@@ -6023,8 +6025,8 @@ See https://github.com/odoo/owl/blob/${hash}/doc/reference/app.md#configuration 
     Object.defineProperty(exports, '__esModule', { value: true });
 
 
-    __info__.date = '2023-07-20T06:05:29.796Z';
-    __info__.hash = 'b1a3b32';
+    __info__.date = '2023-08-07T10:26:30.557Z';
+    __info__.hash = 'b25e988';
     __info__.url = 'https://github.com/odoo/owl';
 
 

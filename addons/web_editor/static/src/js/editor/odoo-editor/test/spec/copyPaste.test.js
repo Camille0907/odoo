@@ -58,6 +58,16 @@ describe('Copy', () => {
                     window.chai.expect(clipboardData.getData('text/odoo-editor')).to.be.equal('abc<br>efg');
                 },
             });
+            await testEditor(BasicEditor, {
+                contentBefore: `]<table><tbody><tr><td><ul><li>a[</li><li>b</li><li>c</li></ul></td><td><br></td></tr></tbody></table>`,
+                stepFunction: async editor => {
+                    const clipboardData = new DataTransfer();
+                    triggerEvent(editor.editable, 'copy', { clipboardData });
+                    window.chai.expect(clipboardData.getData('text/plain')).to.be.equal('a');
+                    window.chai.expect(clipboardData.getData('text/html')).to.be.equal('<table><tbody><tr><td><ul><li>a</li><li>b</li><li>c</li></ul></td><td><br></td></tr></tbody></table>');
+                    window.chai.expect(clipboardData.getData('text/odoo-editor')).to.be.equal('<table><tbody><tr><td><ul><li>a</li><li>b</li><li>c</li></ul></td><td><br></td></tr></tbody></table>');
+                },
+            });
         });
     });
 });
@@ -1405,7 +1415,7 @@ describe('Paste', () => {
                     stepFunction: async editor => {
                         await pasteText(editor, 'oom');
                     },
-                    contentAfter: '<p>a<a href="https://boom.com">boom[].com</a>d</p>',
+                    contentAfter: '<p>a<a href="http://boom.com">boom[].com</a>d</p>',
                 });
             });
             it('should replace link for new content when pasting in an empty link', async () => {
@@ -1534,6 +1544,15 @@ describe('Paste', () => {
                         window.chai.expect(editor.powerbox.isOpen).to.be.false;
                     },
                     contentAfter: `<p><a href="${url}">${url}</a> abc <a href="${videoUrl}">${videoUrl}</a> def <a href="${imgUrl}">${imgUrl}</a>[]</p>`,
+                });
+            });
+            it('should paste plain text inside non empty link', async () => {
+                await testEditor(BasicEditor, {
+                    contentBefore: '<p><a href="#">a[]b</a></p>',
+                    stepFunction: async editor => {
+                        await pasteHtml(editor, '<span>123</span>');
+                    },
+                    contentAfter: '<p><a href="#">a123[]b</a></p>',
                 });
             });
         });

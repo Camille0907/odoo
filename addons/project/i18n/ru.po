@@ -3076,6 +3076,13 @@ msgstr "Оставьте комментарий"
 #. module: project
 #. odoo-javascript
 #: code:addons/project/static/src/js/tours/project.js:0
+#, python-format
+msgid "Let's create your first <b>stage</b>."
+msgstr ""
+
+#. module: project
+#. odoo-javascript
+#: code:addons/project/static/src/js/tours/project.js:0
 #: code:addons/project/static/src/js/tours/project.js:0
 #, python-format
 msgid "Let's create your first <b>project</b>."
@@ -3087,6 +3094,13 @@ msgstr "Давайте создадим ваш первый <b>проект</b>.
 #, python-format
 msgid "Let's create your first <b>task</b>."
 msgstr "Давайте создадим вашу первую <b>задачу</b>."
+
+#. module: project
+#. odoo-javascript
+#: code:addons/project/static/src/js/tours/project.js:0
+#, python-format
+msgid "Let's create your second <b>stage</b>."
+msgstr ""
 
 #. module: project
 #. odoo-javascript
@@ -3418,7 +3432,7 @@ msgstr "Нейтральное лицо"
 #: model_terms:ir.ui.view,arch_db:project.project_project_stage_view_form
 #, python-format
 msgid "New"
-msgstr "Новое"
+msgstr "Новый"
 
 #. module: project
 #: model:project.tags,name:project.project_tags_01
@@ -3678,7 +3692,7 @@ msgstr "Количество ошибок"
 #: model:ir.model.fields,help:project.field_project_task__message_needaction_counter
 #: model:ir.model.fields,help:project.field_project_update__message_needaction_counter
 msgid "Number of messages requiring action"
-msgstr ""
+msgstr "Количество сообщений, требующих действия"
 
 #. module: project
 #: model:ir.model.fields,help:project.field_project_milestone__message_has_error_counter

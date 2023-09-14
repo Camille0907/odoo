@@ -11,9 +11,9 @@
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 16.0\n"
+"Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-23 08:22+0000\n"
+"POT-Creation-Date: 2023-07-26 14:21+0000\n"
 "PO-Revision-Date: 2022-09-22 05:46+0000\n"
 "Last-Translator: Daye Jeong, 2023\n"
 "Language-Team: Korean (https://app.transifex.com/odoo/teams/41243/ko/)\n"
@@ -609,6 +609,7 @@ msgid "Domain"
 msgstr "도메인"
 
 #. module: hr_expense
+#: model:ir.model.fields.selection,name:hr_expense.selection__hr_expense__state__done
 #: model:ir.model.fields.selection,name:hr_expense.selection__hr_expense_sheet__state__done
 msgid "Done"
 msgstr "완료"
@@ -1370,7 +1371,7 @@ msgstr "오류 횟수"
 #: model:ir.model.fields,help:hr_expense.field_hr_expense__message_needaction_counter
 #: model:ir.model.fields,help:hr_expense.field_hr_expense_sheet__message_needaction_counter
 msgid "Number of messages requiring action"
-msgstr ""
+msgstr "조치가 필요한 메시지 수"
 
 #. module: hr_expense
 #: model:ir.model.fields,help:hr_expense.field_hr_expense__message_has_error_counter
@@ -1432,7 +1433,6 @@ msgid "Others"
 msgstr "기타"
 
 #. module: hr_expense
-#: model:ir.model.fields.selection,name:hr_expense.selection__hr_expense__state__done
 #: model:mail.message.subtype,name:hr_expense.mt_expense_paid
 #: model_terms:ir.ui.view,arch_db:hr_expense.view_hr_expense_sheet_form
 msgid "Paid"
@@ -2290,7 +2290,7 @@ msgstr "보고할 경비가 없습니다"
 #: code:addons/hr_expense/models/hr_expense.py:0
 #, python-format
 msgid "You need to add a manual payment method on the journal (%s)"
-msgstr ""
+msgstr "전표에 수동 결제 방법을 추가해야 합니다 (%s)"
 
 #. module: hr_expense
 #. odoo-python
@@ -2356,3 +2356,13 @@ msgstr "승인 중"
 #: model_terms:ir.ui.view,arch_db:hr_expense.res_config_settings_view_form
 msgid "use OCR to fill data from a picture of the bill"
 msgstr "OCR을 사용하여 청구서 사진의 데이터 채우기"
+
+#. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+#, python-format
+msgid ""
+"The private address of the employee is required to post the expense report. "
+"Please add it on the employee form."
+msgstr ""
+"비용 보고서를 게시하려면 직원의 개인 주소가 필요합니다. 직원 양식에 추가하십시오."

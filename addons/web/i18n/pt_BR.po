@@ -6,13 +6,13 @@
 # Luiz Carlos de Lima <luiz.carlos@akretion.com.br>, 2022
 # Luiz Fernando <lfpsgs@outlook.com>, 2022
 # Rodrigo de Almeida Sottomaior Macedo <rmsolucoeseminformatica@protonmail.com>, 2022
-# grazziano <gra.negocia@gmail.com>, 2022
+# grazziano <grazziano.do+transifex@gmail.com>, 2022
 # Mateus Lopes <mateus1@gmail.com>, 2022
 # Éder Brito <britoederr@gmail.com>, 2023
-# adrianojprado <adrianojprado@gmail.com>, 2023
-# Kevilyn Rosa, 2023
 # ff68f1f9b02a0effe4204ba86a8b106e_92c9ca6, 2023
 # Martin Trigaux, 2023
+# adrianojprado <adrianojprado@gmail.com>, 2023
+# Kevilyn Rosa, 2023
 # Layna Nascimento, 2023
 # 
 msgid ""
@@ -335,7 +335,7 @@ msgstr "<span itemprop=\"name\">Deco Addict</span>"
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid "<span>$ <span class=\"oe_currency_value\">19,250.00</span></span>"
-msgstr ""
+msgstr "<span>$ <span class=\"oe_currency_value\">19.250,00</span></span>"
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
@@ -793,14 +793,14 @@ msgstr "Entre os/as"
 #: code:addons/web/static/src/core/file_upload/file_upload_service.js:0
 #, python-format
 msgid "An error occured while uploading."
-msgstr ""
+msgstr "Ocorreu um erro ao fazer o upload."
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/core/errors/error_dialogs.xml:0
 #, python-format
 msgid "An error occurred"
-msgstr "Ocorreu um erro"
+msgstr "Houve um erro"
 
 #. module: web
 #. odoo-javascript
@@ -1121,6 +1121,10 @@ msgid ""
 " all purposes when it is used on documents, including legally binding "
 "contracts."
 msgstr ""
+"Ao clicar em \"Adotar & Assinar,\" concordo que a assinatura/iniciais "
+"escolhidas serão uma representação eletrônica válida da minha "
+"assinatura/iniciais manuscritas para todos os fins quando forem usadas em "
+"documentos, incluindo contratos juridicamente vinculativos."
 
 #. module: web
 #. odoo-javascript
@@ -1524,7 +1528,7 @@ msgstr "Copyright © 2004"
 #: code:addons/web/static/src/legacy/js/core/ajax.js:0
 #, python-format
 msgid "Could not connect to the server"
-msgstr "Não pôde connectar ao servidor"
+msgstr "Não foi possível conectar ao servidor"
 
 #. module: web
 #. odoo-javascript
@@ -3175,7 +3179,7 @@ msgstr "Assunto da Reunião"
 #: code:addons/web/static/src/views/calendar/quick_create/calendar_quick_create.xml:0
 #, python-format
 msgid "Meeting Subject:"
-msgstr ""
+msgstr "Assunto da Reunião"
 
 #. module: web
 #. odoo-javascript
@@ -5985,7 +5989,7 @@ msgstr ""
 #: code:addons/web/controllers/binary.py:0
 #, python-format
 msgid "You are not allowed to upload an attachment here."
-msgstr ""
+msgstr "Você não tem permissão para enviar um anexo aqui."
 
 #. module: web
 #. odoo-javascript
@@ -6160,7 +6164,7 @@ msgstr "todos os registros"
 #: code:addons/web/static/src/core/domain_selector/domain_selector_branch_operator.xml:0
 #, python-format
 msgid "any"
-msgstr ""
+msgstr "qualquer"
 
 #. module: web
 #. odoo-javascript
@@ -6522,7 +6526,7 @@ msgstr "menor ou igual a"
 #: code:addons/web/static/src/core/domain_selector/domain_selector_operators.js:0
 #, python-format
 msgid "like"
-msgstr ""
+msgstr "curtir"
 
 #. module: web
 #. odoo-javascript
@@ -6730,14 +6734,7 @@ msgstr "definido (true)"
 #. odoo-javascript
 #: code:addons/web/static/src/core/commands/command_palette.xml:0
 #, python-format
-msgid "to open in new tab"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/core/commands/command_palette.xml:0
-#, python-format
-msgid "to open,"
+msgid "new tab"
 msgstr ""
 
 #. module: web

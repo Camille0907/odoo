@@ -4,6 +4,7 @@
 # 
 # Translators:
 # Martin Trigaux, 2022
+# Niyas Raphy, 2023
 # Malaz Abuidris <msea@odoo.com>, 2023
 # 
 msgid ""
@@ -391,7 +392,7 @@ msgstr "عدد الأخطاء "
 #. module: note
 #: model:ir.model.fields,help:note.field_note_note__message_needaction_counter
 msgid "Number of messages requiring action"
-msgstr ""
+msgstr "عدد الرسائل التي تتطلب اتخاذ إجراء"
 
 #. module: note
 #: model:ir.model.fields,help:note.field_note_note__message_has_error_counter
@@ -531,7 +532,7 @@ msgstr "أنشطة اليوم "
 #. module: note
 #: model:note.stage,name:note.note_stage_03
 msgid "Todo"
-msgstr "المطلوب تنفيذه"
+msgstr "قائمة المهام "
 
 #. module: note
 #: model:ir.model.fields,help:note.field_note_note__activity_exception_decoration

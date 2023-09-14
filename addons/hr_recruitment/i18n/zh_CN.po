@@ -10,6 +10,7 @@
 # Jeffery CHEN <jeffery9@gmail.com>, 2022
 # Martin Trigaux, 2023
 # Emily Jia <eji@odoo.com>, 2023
+# Chloe Wang, 2023
 # 
 msgid ""
 msgstr ""
@@ -17,7 +18,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-05-23 08:22+0000\n"
 "PO-Revision-Date: 2022-09-22 05:52+0000\n"
-"Last-Translator: Emily Jia <eji@odoo.com>, 2023\n"
+"Last-Translator: Chloe Wang, 2023\n"
 "Language-Team: Chinese (China) (https://app.transifex.com/odoo/teams/41243/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1958,7 +1959,7 @@ msgstr "错误数"
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__message_needaction_counter
 msgid "Number of messages requiring action"
-msgstr ""
+msgstr "需要采取行动的消息数量"
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__message_has_error_counter
@@ -2062,7 +2063,7 @@ msgstr ""
 #: code:addons/hr_recruitment/models/hr_recruitment.py:0
 #, python-format
 msgid "People can also apply by email to save time."
-msgstr ""
+msgstr "有意者可以通过电子邮件申请，以节省时间。"
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__hr_responsible_id
@@ -2575,7 +2576,7 @@ msgid ""
 "have access to the information, the attachments, the meeting management and "
 "they can refuse him. You don't need to have Recruitment rights to be set as "
 "an interviewer."
-msgstr ""
+msgstr "工作岗位的全部申请者对面试人员可见。可以查看信息和附件、管理会议、拒绝申请。您无需拥有招聘权限，即可被设置为面试人员。"
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__user_id

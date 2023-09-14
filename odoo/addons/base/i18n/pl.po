@@ -8237,7 +8237,7 @@ msgstr "Widok okna akcji"
 #: model:ir.ui.menu,name:base.next_id_6
 #: model_terms:ir.ui.view,arch_db:base.view_server_action_form
 msgid "Actions"
-msgstr "Działania"
+msgstr "Akcje"
 
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.module_form
@@ -10653,7 +10653,7 @@ msgstr "Wyspa Bożego Narodzenia"
 #: model_terms:ir.ui.view,arch_db:base.view_partner_form
 #: model_terms:ir.ui.view,arch_db:base.view_res_bank_form
 msgid "City"
-msgstr "Miejscowość"
+msgstr "Miasto"
 
 #. module: base
 #: model:ir.model.fields.selection,name:base.selection__ir_logging__type__client
@@ -14752,7 +14752,7 @@ msgstr "Grupa"
 #: model_terms:ir.ui.view,arch_db:base.view_server_action_search
 #: model_terms:ir.ui.view,arch_db:base.view_view_search
 msgid "Group By"
-msgstr "Grupuj wg."
+msgstr "Grupuj wg"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_res_groups__full_name
@@ -22966,7 +22966,7 @@ msgstr "Funkcje proxy dla account_edi"
 #. module: base
 #: model:res.groups,name:base.group_public
 msgid "Public"
-msgstr "Publiczny"
+msgstr "Publiczne"
 
 #. module: base
 #: model:res.partner.industry,name:base.res_partner_industry_O
@@ -25165,7 +25165,6 @@ msgstr "Rozpocznij konfigurację"
 #: model_terms:ir.ui.view,arch_db:base.view_company_form
 #: model_terms:ir.ui.view,arch_db:base.view_country_state_form
 #: model_terms:ir.ui.view,arch_db:base.view_country_state_tree
-#: model_terms:ir.ui.view,arch_db:base.view_module_filter
 #: model_terms:ir.ui.view,arch_db:base.view_partner_address_form
 #: model_terms:ir.ui.view,arch_db:base.view_partner_form
 #: model_terms:ir.ui.view,arch_db:base.view_res_bank_form
@@ -25208,6 +25207,7 @@ msgstr "Stany"
 #: model:ir.model.fields,field_description:base.field_ir_module_module__state
 #: model:ir.model.fields,field_description:base.field_ir_module_module_dependency__state
 #: model:ir.model.fields,field_description:base.field_ir_module_module_exclusion__state
+#: model_terms:ir.ui.view,arch_db:base.view_module_filter
 #: model_terms:ir.ui.view,arch_db:base.view_users_form_simple_modif
 msgid "Status"
 msgstr "Status"
@@ -28447,7 +28447,7 @@ msgstr "Routing internetowy"
 #: model_terms:ir.ui.view,arch_db:base.view_partner_address_form
 #: model_terms:ir.ui.view,arch_db:base.view_partner_form
 msgid "Website"
-msgstr "Strona WWW"
+msgstr "Strona internetowa"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_website_payment_authorize
@@ -29025,6 +29025,13 @@ msgstr ""
 
 #. module: base
 #. odoo-python
+#: code:addons/base/models/ir_config_parameter.py:0
+#, python-format
+msgid "You cannot delete the %s record."
+msgstr ""
+
+#. module: base
+#. odoo-python
 #: code:addons/base/models/res_lang.py:0
 #, python-format
 msgid ""
@@ -29056,6 +29063,13 @@ msgid ""
 msgstr ""
 "Nie można zmniejszyć liczby miejsc dziesiętnych waluty już użytej w zapisie "
 "księgowym."
+
+#. module: base
+#. odoo-python
+#: code:addons/base/models/ir_config_parameter.py:0
+#, python-format
+msgid "You cannot rename config parameters with keys %s"
+msgstr ""
 
 #. module: base
 #. odoo-python

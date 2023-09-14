@@ -5,6 +5,7 @@
 # Translators:
 # Hasna, 2023
 # Nikhil Krishnan, 2023
+# Mehjabin Farsana, 2023
 # Niyas Raphy, 2023
 # 
 msgid ""
@@ -34,6 +35,12 @@ msgstr ""
 
 #. module: website
 #. odoo-python
+#: code:addons/website/models/website_rewrite.py:0
+#, python-format
+msgid "\"URL from\" can not be empty."
+msgstr ""
+
+#. module: website
 #: code:addons/website/models/website_rewrite.py:0
 #, python-format
 msgid "\"URL to\" can not be empty."
@@ -2005,7 +2012,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Banner"
-msgstr ""
+msgstr "ബാനർ"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_chart_options
@@ -2204,7 +2211,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_countdown_options
 msgid "Boxes"
-msgstr ""
+msgstr "പെട്ടികൾ"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -2296,7 +2303,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_odoo_menu
 msgid "Camera"
-msgstr ""
+msgstr "ക്യാമറ"
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_partner__can_publish
@@ -2644,7 +2651,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_list
 msgid "Clothes"
-msgstr ""
+msgstr "വസ്ത്രങ്ങൾ"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
@@ -3528,7 +3535,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_image_text
 msgid "Discover more"
-msgstr ""
+msgstr "കൂടുതൽ കണ്ടെത്തുക"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_big_icons_subtitles
@@ -3701,7 +3708,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.external_snippets
 msgid "Donation Button"
-msgstr ""
+msgstr "സംഭാവന ബട്ടൺ"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_image_gallery_options
@@ -6831,6 +6838,13 @@ msgid "No support"
 msgstr ""
 
 #. module: website
+#. odoo-javascript
+#: code:addons/website/static/src/systray_items/website_switcher.js:0
+#, python-format
+msgid "No website domain configured for this website."
+msgstr ""
+
+#. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_chart_options
 #: model_terms:ir.ui.view,arch_db:website.s_countdown_options
 #: model_terms:ir.ui.view,arch_db:website.s_image_gallery_options
@@ -7382,6 +7396,13 @@ msgid "Pay"
 msgstr ""
 
 #. module: website
+#. odoo-javascript
+#: code:addons/website/static/src/js/form_editor_registry.js:0
+#, python-format
+msgid "Phone Number"
+msgstr ""
+
+#. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
 msgid "Phones"
 msgstr "ഫോണുകൾ"
@@ -7397,7 +7418,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Picture"
-msgstr ""
+msgstr "ചിത്രം"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_chart_options
@@ -8903,6 +8924,13 @@ msgid "Sub Menus"
 msgstr ""
 
 #. module: website
+#. odoo-javascript
+#: code:addons/website/static/src/js/form_editor_registry.js:0
+#, python-format
+msgid "Subject"
+msgstr "വിഷയം"
+
+#. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
 #: model_terms:ir.ui.view,arch_db:website.s_website_form
 msgid "Submit"
@@ -9490,6 +9518,22 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.report_viewhierarchy_children
 msgid "This view arch has been modified"
+msgstr ""
+
+#. module: website
+#. odoo-javascript
+#: code:addons/website/static/src/systray_items/website_switcher.js:0
+#, python-format
+msgid ""
+"This website does not have a domain configured. To avoid unexpected behaviours during website edition, we recommend closing (or refreshing) other browser tabs.\n"
+"To remove this message please set a domain in your website settings"
+msgstr ""
+
+#. module: website
+#. odoo-javascript
+#: code:addons/website/static/src/systray_items/website_switcher.xml:0
+#, python-format
+msgid "This website does not have a domain configured."
 msgstr ""
 
 #. module: website
@@ -10881,10 +10925,38 @@ msgid "You'll be able to create your pages later on."
 msgstr "നിങ്ങൾക്ക് പിന്നീട് നിങ്ങളുടെ പേജുകൾ സൃഷ്ടിക്കാൻ കഴിയും."
 
 #. module: website
+#. odoo-javascript
+#: code:addons/website/static/src/js/form_editor_registry.js:0
+#, python-format
+msgid "Your Company"
+msgstr ""
+
+#. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_dynamic_snippet_template
 msgid ""
 "Your Dynamic Snippet will be displayed here... This message is displayed "
 "because you did not provided both a filter and a template to use.<br/>"
+msgstr ""
+
+#. module: website
+#. odoo-javascript
+#: code:addons/website/static/src/js/form_editor_registry.js:0
+#, python-format
+msgid "Your Email"
+msgstr "നിങ്ങളുടെ ഇമെയിൽ"
+
+#. module: website
+#. odoo-javascript
+#: code:addons/website/static/src/js/form_editor_registry.js:0
+#, python-format
+msgid "Your Name"
+msgstr "നിങ്ങളുടെ പേര്"
+
+#. module: website
+#. odoo-javascript
+#: code:addons/website/static/src/js/form_editor_registry.js:0
+#, python-format
+msgid "Your Question"
 msgstr ""
 
 #. module: website

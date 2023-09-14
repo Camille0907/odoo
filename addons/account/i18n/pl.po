@@ -2117,7 +2117,7 @@ msgstr "Wymagane działanie"
 #. module: account
 #: model:ir.ui.menu,name:account.menu_finance_entries_actions
 msgid "Actions"
-msgstr "Działania"
+msgstr "Akcje"
 
 #. module: account
 #: model_terms:ir.ui.view,arch_db:account.res_config_settings_view_form
@@ -3624,7 +3624,7 @@ msgstr "Anuluj wpis"
 #: model:ir.model.fields.selection,name:account.selection__account_move__state__cancel
 #: model_terms:ir.ui.view,arch_db:account.view_account_invoice_filter
 msgid "Cancelled"
-msgstr "Anulowano"
+msgstr "Anulowane"
 
 #. module: account
 #: model_terms:ir.ui.view,arch_db:account.report_invoice_document
@@ -3663,6 +3663,15 @@ msgstr ""
 #, python-format
 msgid "Cannot generate an unused account code."
 msgstr "Nie można wygenerować konta bez wpisania kodu."
+
+#. module: account
+#. odoo-python
+#: code:addons/account/models/account_journal.py:0
+#, python-format
+msgid ""
+"Cannot generate an unused journal code. Please change the name for journal "
+"%s."
+msgstr ""
 
 #. module: account
 #. odoo-python
@@ -7060,7 +7069,7 @@ msgstr "Grupa"
 #: model_terms:ir.ui.view,arch_db:account.view_account_tax_search
 #: model_terms:ir.ui.view,arch_db:account.view_bank_statement_search
 msgid "Group By"
-msgstr "Grupuj wg."
+msgstr "Grupuj wg"
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_payment_register__group_payment
@@ -10027,7 +10036,7 @@ msgstr "Liczba błędów"
 #: model:ir.model.fields,help:account.field_res_company__message_needaction_counter
 #: model:ir.model.fields,help:account.field_res_partner_bank__message_needaction_counter
 msgid "Number of messages requiring action"
-msgstr ""
+msgstr "Liczba wiadomości wymagających akcji"
 
 #. module: account
 #: model:ir.model.fields,help:account.field_account_account__message_has_error_counter
@@ -13253,8 +13262,8 @@ msgstr "Rachunek przejściowy"
 
 #. module: account
 #: model:ir.actions.server,name:account.action_move_switch_invoice_to_credit_note
-msgid "Switch into refund/credit note"
-msgstr "Przełączenie na notę refundacyjną/kredytową"
+msgid "Switch into invoice/credit note"
+msgstr "Przełączenie na fakturę/notę kredytową"
 
 #. module: account
 #: model:ir.model.fields,help:account.field_account_payment_term_line__end_month
@@ -13898,13 +13907,6 @@ msgstr ""
 #. module: account
 #. odoo-python
 #: code:addons/account/models/account_payment_term.py:0
-#, python-format
-msgid "The Months and Days of the Payment Terms lines must be positive."
-msgstr "Miesiące i dni w wierszach warunków płatności muszą być dodatnie."
-
-#. module: account
-#. odoo-python
-#: code:addons/account/models/account_payment_term.py:0
 #: model_terms:ir.ui.view,arch_db:account.view_payment_term_form
 #, python-format
 msgid "The Payment Term must have one Balance line."
@@ -14421,6 +14423,13 @@ msgstr ""
 "- Aby dopasować tekst na początku linii (w etykiecie lub notatkach), po prostu wpisz swój tekst.\n"
 "- Aby dopasować tekst w dowolnym miejscu (w etykiecie lub notatkach), umieść swój tekst pomiędzy .*\n"
 "np.: .*N°48748 abc123.*"
+
+#. module: account
+#: code:addons/account/models/account_move.py:0
+#, python-format
+msgid ""
+"The move could not be posted for the following reason: %(error_message)s"
+msgstr ""
 
 #. module: account
 #. odoo-javascript
@@ -17015,6 +17024,13 @@ msgid ""
 msgstr ""
 "Nie można przełączyć konta, aby zapobiec uzgodnieniu, jeśli niektóre "
 "częściowe uzgodnienia są nadal w toku."
+
+#. module: account
+#. odoo-python
+#: code:addons/account/models/account_account.py:0
+#, python-format
+msgid "You cannot switch the type of a posted document."
+msgstr "Nie można zmienić typu zaksięgowanego dokumentu."
 
 #. module: account
 #. odoo-python

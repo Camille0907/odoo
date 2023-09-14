@@ -924,39 +924,14 @@ class MassMailing(models.Model):
         self.ensure_one()
         target = self.env[self.mailing_model_real]
 
-        # avoid loading a large number of records in memory
-        # + use a basic heuristic for extracting emails
         query = """
-            SELECT lower(substring(t.%(mail_field)s, '([^ ,;<@]+@[^> ,;]+)'))
+            SELECT s.email
               FROM mailing_trace s
               JOIN %(target)s t ON (s.res_id = t.id)
               %(join_domain)s
-             WHERE substring(t.%(mail_field)s, '([^ ,;<@]+@[^> ,;]+)') IS NOT NULL
+             WHERE s.email IS NOT NULL
               %(where_domain)s
         """
-
-        # Apply same 'get email field' rule from mail_thread.message_get_default_recipients
-        if 'partner_id' in target._fields and target._fields['partner_id'].store:
-            mail_field = 'email'
-            query = """
-                SELECT lower(substring(p.%(mail_field)s, '([^ ,;<@]+@[^> ,;]+)'))
-                  FROM mailing_trace s
-                  JOIN %(target)s t ON (s.res_id = t.id)
-                  JOIN res_partner p ON (t.partner_id = p.id)
-                  %(join_domain)s
-                 WHERE substring(p.%(mail_field)s, '([^ ,;<@]+@[^> ,;]+)') IS NOT NULL
-                  %(where_domain)s
-            """
-        elif issubclass(type(target), self.pool['mail.thread.blacklist']):
-            mail_field = 'email_normalized'
-        elif 'email_from' in target._fields and target._fields['email_from'].store:
-            mail_field = 'email_from'
-        elif 'partner_email' in target._fields and target._fields['partner_email'].store:
-            mail_field = 'partner_email'
-        elif 'email' in target._fields and target._fields['email'].store:
-            mail_field = 'email'
-        else:
-            raise UserError(_("Unsupported mass mailing model %s", self.mailing_model_id.name))
 
         if self.ab_testing_enabled:
             query += """
@@ -968,7 +943,7 @@ class MassMailing(models.Model):
                AND s.model = %%(target_model)s;
             """
         join_domain, where_domain = self._get_seen_list_extra()
-        query = query % {'target': target._table, 'mail_field': mail_field, 'join_domain': join_domain, 'where_domain': where_domain}
+        query = query % {'target': target._table, 'join_domain': join_domain, 'where_domain': where_domain}
         params = {'mailing_id': self.id, 'mailing_campaign_id': self.campaign_id.id, 'target_model': self.mailing_model_real}
         self._cr.execute(query, params)
         seen_list = set(m[0] for m in self._cr.fetchall())
@@ -1292,16 +1267,24 @@ class MassMailing(models.Model):
 
         conversion_info = []  # list of tuples (image: base64 image, node: lxml node, old_url: string or None))
         with requests.Session() as session:
-            for node in [n for n in root.iter('img', lxml.etree.Comment) if n.tag == 'img' or mso_re.match(n.text)]:
+            for node in root.iter(lxml.etree.Element, lxml.etree.Comment):
                 if node.tag == 'img':
                     # Convert base64 images in img tags to attachments.
                     match = image_re.match(node.attrib.get('src', ''))
                     if match:
                         image = match.group(2).encode()  # base64 image as bytes
                         conversion_info.append((image, node, None))
-                else:
-                    # Convert base64 images in mso comments to attachments.
-                    for match in re.findall(r'<img[^>]*src="(data:image/[A-Za-z]+;base64,[^"]*)"', node.text):
+                elif 'base64' in (node.attrib.get('style') or ''):
+                    # Convert base64 images in inline styles to attachments.
+                    for match in re.findall(r'data:image/[A-Za-z]+;base64,.+?(?=&\#34;|\"|\'|&quot;|\))', node.attrib.get('style')):
+                        image = re.sub(r'data:image/[A-Za-z]+;base64,', '', match).encode()  # base64 image as bytes
+                        conversion_info.append((image, node, match))
+                elif mso_re.match(node.text or ''):
+                    # Convert base64 images (in img tags or inline styles) in mso comments to attachments.
+                    base64_in_element_regex = re.compile(r"""
+                        (?:(?!^)|<)[^<>]*?(data:image/[A-Za-z]+;base64,[^<]+?)(?=&\#34;|\"|'|&quot;|\))(?=[^<]+>)
+                    """, re.VERBOSE)
+                    for match in re.findall(base64_in_element_regex, node.text):
                         image = re.sub(r'data:image/[A-Za-z]+;base64,', '', match).encode()  # base64 image as bytes
                         conversion_info.append((image, node, match))
                     # Crop VML images.
@@ -1333,6 +1316,8 @@ class MassMailing(models.Model):
             did_modify_body = True
             if node.tag == 'img':
                 node.attrib['src'] = new_url
+            elif 'base64' in (node.attrib.get('style') or ''):
+                node.attrib['style'] = node.attrib['style'].replace(old_url, new_url)
             else:
                 node.text = node.text.replace(old_url, new_url)
 

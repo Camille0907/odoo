@@ -3637,7 +3637,7 @@ msgstr ""
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_invite__template_id
 msgid "Mail Template"
-msgstr ""
+msgstr "Laiško šablonas"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_res_config_settings__module_mass_mailing_slides
@@ -6487,7 +6487,7 @@ msgstr "El.mokymai Kursai"
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_channel_view_kanban
 msgid "eLearning Overview"
-msgstr ""
+msgstr "eMokymų apžvalga"
 
 #. module: website_slides
 #. odoo-javascript

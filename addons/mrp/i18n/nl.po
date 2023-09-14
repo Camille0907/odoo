@@ -5002,6 +5002,16 @@ msgstr ""
 
 #. module: mrp
 #. odoo-python
+#: code:addons/mrp/models/mrp_bom.py:0
+#, python-format
+msgid ""
+"The current configuration is incorrect because it would create a cycle "
+"between these products: %s."
+msgstr ""
+"De huidige configuratie is onjuist omdat er dan een cyclus ontstaat tussen "
+"deze producten: %s."
+
+#. module: mrp
 #: code:addons/mrp/models/stock_orderpoint.py:0
 #, python-format
 msgid "The following replenishment order has been generated"
@@ -5285,12 +5295,12 @@ msgstr "Tijdregistratie: %(user)s"
 #. module: mrp
 #: model:ir.model.fields,help:mrp.field_mrp_workcenter_capacity__time_stop
 msgid "Additional time in minutes for the cleaning."
-msgstr ""
+msgstr "Bijkomende tijd in minuten voor het schoonmaken."
 
 #. module: mrp
 #: model:ir.model.fields,help:mrp.field_mrp_workcenter_capacity__time_start
 msgid "Additional time in minutes for the setup."
-msgstr ""
+msgstr "Bijkomende tijd in minuten voor het instellen."
 
 #. module: mrp
 #: model:ir.model.fields,help:mrp.field_mrp_routing_workcenter__time_cycle_manual

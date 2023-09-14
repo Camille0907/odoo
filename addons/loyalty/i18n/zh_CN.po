@@ -8,6 +8,7 @@
 # Martin Trigaux, 2022
 # Raymond Yu <cl_yu@hotmail.com>, 2022
 # digitalliuzg8888, 2022
+# Chloe Wang, 2023
 # Jeffery CHEN <jeffery9@gmail.com>, 2023
 # 
 msgid ""
@@ -1351,7 +1352,7 @@ msgstr "错误数"
 #. module: loyalty
 #: model:ir.model.fields,help:loyalty.field_loyalty_card__message_needaction_counter
 msgid "Number of messages requiring action"
-msgstr ""
+msgstr "需要采取行动的消息数量"
 
 #. module: loyalty
 #: model:ir.model.fields,help:loyalty.field_loyalty_card__message_has_error_counter
@@ -1437,6 +1438,11 @@ msgstr "产品标签"
 #: model:ir.model,name:loyalty.model_product_product
 msgid "Product Variant"
 msgstr "产品变体"
+
+#. module: loyalty
+#: model:ir.model.fields,help:loyalty.field_loyalty_program__discount_product_id
+msgid "Product used in the sales order to apply the discount."
+msgstr "销售订单中应用的产品将被应用折扣。"
 
 #. module: loyalty
 #: model:ir.model.fields,help:loyalty.field_loyalty_reward__discount_line_product_id

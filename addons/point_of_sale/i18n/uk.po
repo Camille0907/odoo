@@ -5,13 +5,14 @@
 # Translators:
 # Bohdan Lisnenko, 2022
 # Martin Trigaux, 2023
+# Wil Odoo, 2023
 # Alina Lisnenko <alina.lisnenko@erp.co.ua>, 2023
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-04 08:47+0000\n"
+"POT-Creation-Date: 2023-08-18 13:48+0000\n"
 "PO-Revision-Date: 2022-09-22 05:53+0000\n"
 "Last-Translator: Alina Lisnenko <alina.lisnenko@erp.co.ua>, 2023\n"
 "Language-Team: Ukrainian (https://app.transifex.com/odoo/teams/41243/uk/)\n"
@@ -20,6 +21,22 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Language: uk\n"
 "Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
+
+#. module: point_of_sale
+#. odoo-python
+#: code:addons/point_of_sale/models/pos_session.py:0
+#: code:addons/point_of_sale/models/pos_session.py:0
+#, python-format
+msgid " - closing"
+msgstr " - закриття"
+
+#. module: point_of_sale
+#. odoo-python
+#: code:addons/point_of_sale/models/pos_session.py:0
+#: code:addons/point_of_sale/models/pos_session.py:0
+#, python-format
+msgid " - opening"
+msgstr " - відкриття"
 
 #. module: point_of_sale
 #. odoo-python
@@ -1023,6 +1040,13 @@ msgstr "Неможливо закрити сесію в офлайні."
 
 #. module: point_of_sale
 #. odoo-javascript
+#: code:addons/point_of_sale/static/src/js/Screens/ProductScreen/ProductScreen.js:0
+#, python-format
+msgid "Cannot modify a tip"
+msgstr "Неможливо змінити чайові"
+
+#. module: point_of_sale
+#. odoo-javascript
 #: code:addons/point_of_sale/static/src/js/Screens/PaymentScreen/PaymentScreen.js:0
 #, python-format
 msgid "Cannot return change without a cash payment method"
@@ -1782,10 +1806,19 @@ msgstr "Попередження екрану клієнта"
 
 #. module: point_of_sale
 #. odoo-javascript
+#. odoo-python
 #: code:addons/point_of_sale/static/src/js/Screens/PaymentScreen/PaymentScreen.js:0
+#: code:addons/point_of_sale/wizard/pos_payment.py:0
 #, python-format
 msgid "Customer is required for %s payment method."
 msgstr "Потрібен клієнт для %s методу платежу."
+
+#. module: point_of_sale
+#. odoo-javascript
+#: code:addons/point_of_sale/static/src/js/Screens/ProductScreen/ProductScreen.js:0
+#, python-format
+msgid "Customer tips, cannot be modified directly"
+msgstr "Клієнтські чайові неможливо змінити напряму"
 
 #. module: point_of_sale
 #: model:ir.ui.menu,name:point_of_sale.menu_point_of_sale_customer
@@ -2115,6 +2148,13 @@ msgid "Do you want to open the customer list to select customer?"
 msgstr "Ви хочете відкрити список клієнтів, щоб вибрати клієнта?"
 
 #. module: point_of_sale
+#. odoo-javascript
+#: code:addons/point_of_sale/static/src/js/Misc/AbstractReceiptScreen.js:0
+#, python-format
+msgid "Do you want to print using the web printer?"
+msgstr "Ви хочете роздрукувати через веб-принтер?"
+
+#. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
 msgid "Documentation"
 msgstr "Документація"
@@ -2357,6 +2397,13 @@ msgstr "Завершено імпорт замовлень"
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_order__fiscal_position_id
 msgid "Fiscal Position"
 msgstr "Схема оподаткування"
+
+#. module: point_of_sale
+#. odoo-javascript
+#: code:addons/point_of_sale/static/src/js/Screens/TicketScreen/TicketScreen.js:0
+#, python-format
+msgid "Fiscal Position not found"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_config__fiscal_position_ids
@@ -3626,7 +3673,7 @@ msgstr "Кількість товарів повернення у цьому р�
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_pos_session__message_needaction_counter
 msgid "Number of messages requiring action"
-msgstr ""
+msgstr "Кількість повідомлень, які вимагають дії"
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_pos_session__message_has_error_counter
@@ -3638,14 +3685,14 @@ msgstr "Кількість повідомлень з помилковою дст
 #: code:addons/point_of_sale/models/pos_config.py:0
 #, python-format
 msgid "Number of partners loaded can not be 0"
-msgstr ""
+msgstr "Кількість завантажених партнерів не може бути 0"
 
 #. module: point_of_sale
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_config.py:0
 #, python-format
 msgid "Number of product loaded can not be 0"
-msgstr ""
+msgstr "Кількість завантажених товарів не може бути 0"
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -3732,6 +3779,16 @@ msgstr ""
 #: model:ir.model.fields,field_description:point_of_sale.field_res_config_settings__pos_only_round_cash_method
 msgid "Only apply rounding on cash"
 msgstr "Застосовуйте округлення лише готівкою"
+
+#. module: point_of_sale
+#. odoo-python
+#: code:addons/point_of_sale/models/pos_payment_method.py:0
+#, python-format
+msgid ""
+"Only journals of type 'Cash' or 'Bank' could be used with payment methods."
+msgstr ""
+"Тільки журнали типу \"Готівка\" або \"Банк\" можуть використовуватись із "
+"способами оплати."
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
@@ -3960,8 +4017,8 @@ msgstr ""
 "замовлення."
 
 #. module: point_of_sale
-#. odoo-python
 #. odoo-javascript
+#. odoo-python
 #: code:addons/point_of_sale/models/pos_session.py:0
 #: code:addons/point_of_sale/static/src/xml/ChromeWidgets/DebugWidget.xml:0
 #: code:addons/point_of_sale/static/src/xml/ChromeWidgets/TicketButton.xml:0
@@ -4117,8 +4174,8 @@ msgid "Pay Order"
 msgstr "Оплатити замовлення"
 
 #. module: point_of_sale
-#. odoo-python
 #. odoo-javascript
+#. odoo-python
 #: code:addons/point_of_sale/static/src/js/Screens/ProductScreen/ProductScreen.js:0
 #: code:addons/point_of_sale/static/src/js/Screens/TicketScreen/TicketScreen.js:0
 #: code:addons/point_of_sale/static/src/xml/Screens/PaymentScreen/PaymentScreen.xml:0
@@ -4269,7 +4326,7 @@ msgstr "Платежі:"
 #: code:addons/point_of_sale/static/src/js/Screens/PaymentScreen/PaymentScreen.js:0
 #, python-format
 msgid "Pending Electronic Payments"
-msgstr ""
+msgstr "Очікування електронних платежів"
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_pos_order__user_id
@@ -6319,6 +6376,15 @@ msgstr ""
 "Виникла помилка модуля фіскальної дати під час отримання вашого замовлення."
 
 #. module: point_of_sale
+#. odoo-javascript
+#: code:addons/point_of_sale/static/src/js/Screens/TicketScreen/TicketScreen.js:0
+#, python-format
+msgid ""
+"The fiscal position used in the original order is not loaded. Make sure it "
+"is loaded by adding it in the pos configuration."
+msgstr ""
+
+#. module: point_of_sale
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_session.py:0
 #, python-format
@@ -6359,9 +6425,12 @@ msgstr "Журнал рахунків точки продажу %s має нал
 #, python-format
 msgid ""
 "The maximum difference allowed is %s.\n"
-"\r\n"
+"\n"
 "                        Please contact your manager to accept the closing difference."
 msgstr ""
+"Максимальна дозволена різниця - це %s.\n"
+"\n"
+"                       Будь ласка, зверніться до свого менеджера, щоб прийняти кінцеву різницю."
 
 #. module: point_of_sale
 #. odoo-python
@@ -6632,6 +6701,8 @@ msgid ""
 "There is at least one pending electronic payment.\n"
 "Please finish the payment with the terminal or cancel it then remove the payment line."
 msgstr ""
+"Є принаймні один електронний платіж, що очікує на розгляд.\n"
+"Будь ласка, завершіть платіж за допомогою терміналу або скасуйте його, а потім видаліть рядок платежу."
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_config_view_form
