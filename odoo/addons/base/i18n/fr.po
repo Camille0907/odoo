@@ -2059,7 +2059,7 @@ msgstr ""
 "Certification et compétences pour les RH\n"
 "===============================\n"
 "\n"
-"Ce module ajoute la certification au cv des employés.\n"
+"Ce module ajoute la certification au CV des employés.\n"
 "        "
 
 #. module: base
@@ -2528,7 +2528,7 @@ msgstr ""
 "E-learning et compétences pour les RH\n"
 "============================\n"
 "\n"
-"Ce module ajoute les cours terminés au cv des employés.\n"
+"Ce module ajoute les cours terminés au CV des employés.\n"
 "        "
 
 #. module: base
@@ -4212,10 +4212,10 @@ msgid ""
 "        "
 msgstr ""
 "\n"
-"Compétences et cv pour les RH\n"
+"Compétences et CV pour les RH\n"
 "========================\n"
 "\n"
-"Ce module introduit la gestion des compétences et des cv des employés.\n"
+"Ce module introduit la gestion des compétences et des CV des employés.\n"
 "        "
 
 #. module: base
@@ -4666,7 +4666,7 @@ msgstr ""
 "Module de base de gestion des produits et des listes de prix dans Odoo.\n"
 "================================================== ======================\n"
 "\n"
-"Prise en compte des variantes de produit, différentes méthodes de tarification, informations des vendeurs, fabrication sur stock ou sur ordre, différentes unités de mesures, emballage et propriétés.\n"
+"Prise en compte des variantes de produit, différentes méthodes de tarification, informations des vendeurs, fabrication sur stock ou sur ordre, différentes unités de mesures, conditionnement et propriétés.\n"
 "\n"
 "Prise en charge des listes de prix:\n"
 "-------------------\n"
@@ -5909,7 +5909,7 @@ msgstr ""
 "- date de retrait\n"
 "- date d'alerte\n"
 "\n"
-"Met également en œuvre la stratégie de retrait largement utilisée dans les industries alimentaires : First Expiry First Out (FEFO), Premier Périmé, Premier Sorti (PPPS).\n"
+"Met également en œuvre la stratégie d'enlèvement largement utilisée dans les industries alimentaires : First Expiry First Out (FEFO), Premier Périmé, Premier Sorti (PPPS).\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_transifex
@@ -8344,12 +8344,12 @@ msgstr "Ajoutez des possibilités de certification à vos cours"
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_skills_survey
 msgid "Add certification to resume of your employees"
-msgstr "Ajoutez une certification au cv de vos employés"
+msgstr "Ajoutez une certification au CV de vos employés"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_skills_slides
 msgid "Add completed courses to resume of your employees"
-msgstr "Ajoutez des cours complétés au cv de vos employés"
+msgstr "Ajoutez des cours complétés au CV de vos employés"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_website_sale_delivery
@@ -13273,6 +13273,19 @@ msgstr "Message d'erreur renvoyé quand la contrainte n'est pas respectée. "
 
 #. module: base
 #. odoo-python
+#: code:addons/translate.py:0
+#, python-format
+msgid ""
+"Error while parsing view:\n"
+"\n"
+"%s"
+msgstr ""
+"Erreur lors de l'analyse de la vue :\n"
+"\n"
+"%s"
+
+#. module: base
+#. odoo-python
 #: code:addons/base/models/ir_ui_view.py:0
 #, python-format
 msgid ""
@@ -17710,7 +17723,7 @@ msgstr "Gérez les compétences de vos employés"
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_skills
 msgid "Manage skills, knowledge and resume of your employees"
-msgstr "Gérez les compétences, les connaissances et le cv de vos employés"
+msgstr "Gérez les compétences, les connaissances et le CV de vos employés"
 
 #. module: base
 #: model_terms:ir.actions.act_window,help:base.action_country
@@ -22749,7 +22762,7 @@ msgstr "Gestion de cycle de vie des produits"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_product_matrix
 msgid "Product Matrix"
-msgstr "Matrix produit"
+msgstr "Matrice des produits"
 
 #. module: base
 #: model:ir.module.category,name:base.module_category_productivity
@@ -23108,7 +23121,7 @@ msgstr "Conventions d'achat"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_purchase_product_matrix
 msgid "Purchase Matrix"
-msgstr "Matrix d'achat"
+msgstr "Matrice d'achat"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_purchase_stock
@@ -25259,7 +25272,6 @@ msgstr "Démarrer la configuration"
 #: model_terms:ir.ui.view,arch_db:base.view_company_form
 #: model_terms:ir.ui.view,arch_db:base.view_country_state_form
 #: model_terms:ir.ui.view,arch_db:base.view_country_state_tree
-#: model_terms:ir.ui.view,arch_db:base.view_module_filter
 #: model_terms:ir.ui.view,arch_db:base.view_partner_address_form
 #: model_terms:ir.ui.view,arch_db:base.view_partner_form
 #: model_terms:ir.ui.view,arch_db:base.view_res_bank_form
@@ -25302,6 +25314,7 @@ msgstr "États"
 #: model:ir.model.fields,field_description:base.field_ir_module_module__state
 #: model:ir.model.fields,field_description:base.field_ir_module_module_dependency__state
 #: model:ir.model.fields,field_description:base.field_ir_module_module_exclusion__state
+#: model_terms:ir.ui.view,arch_db:base.view_module_filter
 #: model_terms:ir.ui.view,arch_db:base.view_users_form_simple_modif
 msgid "Status"
 msgstr "Statut"
@@ -29154,6 +29167,13 @@ msgstr ""
 
 #. module: base
 #. odoo-python
+#: code:addons/base/models/ir_config_parameter.py:0
+#, python-format
+msgid "You cannot delete the %s record."
+msgstr "Vous ne pouvez pas supprimer l'enregistrement %s."
+
+#. module: base
+#. odoo-python
 #: code:addons/base/models/res_lang.py:0
 #, python-format
 msgid ""
@@ -29187,6 +29207,14 @@ msgid ""
 msgstr ""
 "Vous ne pouvez pas réduire le nombre de décimales d'une devise déjà utilisée"
 " sur une écriture comptable."
+
+#. module: base
+#. odoo-python
+#: code:addons/base/models/ir_config_parameter.py:0
+#, python-format
+msgid "You cannot rename config parameters with keys %s"
+msgstr ""
+"Vous ne pouvez pas renommer des paramètres de configuration avec les clés %s"
 
 #. module: base
 #. odoo-python

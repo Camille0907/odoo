@@ -16,6 +16,8 @@
 # Josep Anton Belchi, 2023
 # Patricia Gutiérrez Capetillo <pagc@odoo.com>, 2023
 # kikopeiro <francisco.peiro@factorlibre.com>, 2023
+# Ana Sanjuán, 2023
+# Iran Villalobos López, 2023
 # Pedro M. Baeza <pedro.baeza@tecnativa.com>, 2023
 # 
 msgid ""
@@ -517,8 +519,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"        Agregar información cuando hacemos la descripción de un cliente potencial para incluir\n"
-"        las preguntas y respuestas vinculadas a los registros.\n"
+"        Agregar información cuando hacemos la descripción de una oportunidad para incluir\n"
+"        las preguntas y respuestas vinculadas a las inscripciones.\n"
 "    "
 
 #. module: base
@@ -2091,16 +2093,16 @@ msgid ""
 "this event.\n"
 msgstr ""
 "\n"
-"Crear registros con ordenes de venta.\n"
-"========================================\n"
+"Crear inscripciones con pedidos de venta.\n"
+"=========================================\n"
 "\n"
-"Este módulo permite automatizar y conectar la creación del registro con el flujo de venta\n"
-"principal y, por tanto, disponer de la opción de facturación de los registros.\n"
+"Este módulo permite automatizar y conectar la creación de la inscripción con el flujo de venta\n"
+"principal y, por tanto, disponer de la opción de facturación de las inscripciones.\n"
 "\n"
-"Indica un nuevo tipo de productos de servicio que te ofrece la posibilidad de\n"
-"elegir una categoría de un evento asociado a este. Cuando codifique un pedido para\n"
+"Indica un nuevo tipo de productos de servicio que le ofrece la posibilidad de\n"
+"elegir una categoría de un evento asociado al mismo. Cuando introduzca un pedido para\n"
 "ese producto, podrá elegir un evento existente de esa categoría y,\n"
-"cuando confirme su pedido automáticamente, se creará un registro para\n"
+"cuando confirme su pedido automáticamente, se creará una inscripción para\n"
 "este evento.\n"
 
 #. module: base
@@ -7001,7 +7003,7 @@ msgid ""
 "can be managed from here."
 msgstr ""
 "Un grupo es un conjunto de áreas funcionales que se asignarán al usuario "
-"para darle acceso y derechos a aplicaciones específicas y tareas en el "
+"para darle acceso y permisos a aplicaciones específicas y tareas en el "
 "sistema. Puede crear grupos personalizados o editar los existentes para "
 "personalizar la vista de menús que los usuarios podrán ver. La gestión de "
 "los permisos de lectura, escritura, creación y eliminación se hace desde "
@@ -7337,7 +7339,7 @@ msgstr "Permisos de acceso"
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.user_groups_view
 msgid "Access Rights Mismatch"
-msgstr ""
+msgstr "Discrepancia en los permisos de acceso"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_ir_attachment__access_token
@@ -7741,8 +7743,8 @@ msgid ""
 "Add information of sale order linked to the registration for the creation of"
 " the lead."
 msgstr ""
-"Agrega información de la orden de venta para el registro de la creación del "
-"cliente potencial."
+"Agrega información del pedido de venta enlazado a la inscripción en la "
+"creación de la oportunidad."
 
 #. module: base
 #: model:ir.module.module,summary:base.module_mass_mailing_crm
@@ -10891,7 +10893,7 @@ msgstr "Crear una nueva iniciativa desde una conversación de chat "
 #. module: base
 #: model:ir.module.module,description:base.module_event_crm
 msgid "Create leads from event registrations."
-msgstr "Crea leads a partir de los registros de un evento"
+msgstr "Crea oportunidades a partir de las inscripciones de un evento"
 
 #. module: base
 #: model:ir.module.module,description:base.module_crm_livechat
@@ -12576,6 +12578,16 @@ msgstr "Mensaje de error devuelto cuando se viola la restricción."
 
 #. module: base
 #. odoo-python
+#: code:addons/translate.py:0
+#, python-format
+msgid ""
+"Error while parsing view:\n"
+"\n"
+"%s"
+msgstr ""
+
+#. module: base
+#. odoo-python
 #: code:addons/base/models/ir_ui_view.py:0
 #, python-format
 msgid ""
@@ -14102,7 +14114,7 @@ msgstr "Nombre del grupo"
 #: model:ir.model.fields,help:base.field_res_groups__share
 msgid "Group created to set access rights for sharing data with some users."
 msgstr ""
-"Grupo creado para establecer derechos de acceso para compartir información "
+"Grupo creado para establecer permisos de acceso para compartir información "
 "con algunos usuarios."
 
 #. module: base
@@ -16591,7 +16603,7 @@ msgstr "Lituania - Contabilidad"
 #: model:ir.module.category,name:base.module_category_website_live_chat
 #: model:ir.module.module,shortdesc:base.module_im_livechat
 msgid "Live Chat"
-msgstr "Charla en vivo"
+msgstr "Chat en vivo"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_website_event_track_live
@@ -18325,7 +18337,7 @@ msgstr "No realizado"
 #: code:addons/base/models/ir_model.py:0
 #, python-format
 msgid "Not enough access rights on the external ID:"
-msgstr "No hay suficientes derechos de acceso en el ID externo:"
+msgstr "No hay suficientes permisos de acceso en el ID externo:"
 
 #. module: base
 #. odoo-python
@@ -18367,7 +18379,7 @@ msgstr "Numero de compañías"
 #. module: base
 #: model:ir.model.fields,help:base.field_res_users__accesses_count
 msgid "Number of access rights that apply to the current user"
-msgstr "Número de derechos de acceso que se aplican al usuario actual"
+msgstr "Número de permisos de acceso que se aplican al usuario actual"
 
 #. module: base
 #: model:ir.model.fields,help:base.field_res_users__groups_count
@@ -18601,15 +18613,15 @@ msgstr ""
 "El enfoque del bloque de creación permite que el sitio web permanezca limpio después de que los usuarios finales\n"
 "comiencen a crear nuevos contenidos.\n"
 "\n"
-"Derechos de acceso fácil\n"
+"Permisos de acceso fácil\n"
 "------------------\n"
 "\n"
 "No todos requieren el mismo acceso a su sitio web. Los diseñadores manejan el\n"
 "diseño del sitio, los editores aprueban el contenido y los autores escriben ese contenido.\n"
 "Esto le permite organizar su proceso de publicación de acuerdo a sus necesidades.\n"
 "\n"
-"Otros derechos de acceso están relacionados con objetos comerciales (productos, personas, eventos,\n"
-"etc.) y directamente siguiendo la gestión de derechos de acceso estándar de Odoo, por lo que hace\n"
+"Otros permisos de acceso están relacionados con objetos comerciales (productos, personas, eventos,\n"
+"etc.) y directamente siguiendo la gestión de permisos de acceso estándar de Odoo, por lo que hace\n"
 "no tiene que configurar las cosas dos veces.\n"
 
 #. module: base
@@ -21084,7 +21096,7 @@ msgstr "Otra dirección"
 #. module: base
 #: model:ir.module.category,name:base.module_category_extra
 msgid "Other Extra Rights"
-msgstr "Otros derechos adicionales"
+msgstr "Otros permisos adicionales"
 
 #. module: base
 #: model:ir.model.fields.selection,name:base.selection__ir_module_module__license__other_osi_approved_licence
@@ -23508,7 +23520,7 @@ msgstr "Arabia Saudita - Contabilidad"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_l10n_sa_pos
 msgid "Saudi Arabia - Point of Sale"
-msgstr ""
+msgstr "Arabia Saudita - Punto de venta"
 
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.view_users_form_simple_modif
@@ -24520,7 +24532,6 @@ msgstr "Iniciar configuración"
 #: model_terms:ir.ui.view,arch_db:base.view_company_form
 #: model_terms:ir.ui.view,arch_db:base.view_country_state_form
 #: model_terms:ir.ui.view,arch_db:base.view_country_state_tree
-#: model_terms:ir.ui.view,arch_db:base.view_module_filter
 #: model_terms:ir.ui.view,arch_db:base.view_partner_address_form
 #: model_terms:ir.ui.view,arch_db:base.view_partner_form
 #: model_terms:ir.ui.view,arch_db:base.view_res_bank_form
@@ -24563,6 +24574,7 @@ msgstr "Estados"
 #: model:ir.model.fields,field_description:base.field_ir_module_module__state
 #: model:ir.model.fields,field_description:base.field_ir_module_module_dependency__state
 #: model:ir.model.fields,field_description:base.field_ir_module_module_exclusion__state
+#: model_terms:ir.ui.view,arch_db:base.view_module_filter
 #: model_terms:ir.ui.view,arch_db:base.view_users_form_simple_modif
 msgid "Status"
 msgstr "Estado"
@@ -28330,6 +28342,13 @@ msgstr ""
 
 #. module: base
 #. odoo-python
+#: code:addons/base/models/ir_config_parameter.py:0
+#, python-format
+msgid "You cannot delete the %s record."
+msgstr ""
+
+#. module: base
+#. odoo-python
 #: code:addons/base/models/res_lang.py:0
 #, python-format
 msgid ""
@@ -28364,6 +28383,13 @@ msgstr ""
 
 #. module: base
 #. odoo-python
+#: code:addons/base/models/ir_config_parameter.py:0
+#, python-format
+msgid "You cannot rename config parameters with keys %s"
+msgstr ""
+
+#. module: base
+#. odoo-python
 #: code:addons/models.py:0
 #, python-format
 msgid ""
@@ -28380,7 +28406,7 @@ msgstr ""
 #: code:addons/base/models/ir_actions.py:0
 #, python-format
 msgid "You don't have enough access rights to run this action."
-msgstr "No tiene suficientes derechos de acceso para ejecutar esta acción."
+msgstr "No tiene suficientes permisos de acceso para ejecutar esta acción."
 
 #. module: base
 #. odoo-python

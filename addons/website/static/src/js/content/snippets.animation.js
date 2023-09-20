@@ -452,6 +452,15 @@ registry.slider = publicWidget.Widget.extend({
         // Initialize carousel and pause if in edit mode.
         this.$target.carousel(this.editableMode ? 'pause' : undefined);
         $(window).on('resize.slider', _.debounce(() => this._computeHeights(), 250));
+        if (this.editableMode) {
+            // Prevent carousel slide to be an history step.
+            this.$target.on('slide.bs.carousel', () => {
+                this.options.wysiwyg.odooEditor.observerUnactive();
+            });
+            this.$target.on('slid.bs.carousel', () => {
+                this.options.wysiwyg.odooEditor.observerActive();
+            });
+        }
         return this._super.apply(this, arguments);
     },
     /**
@@ -466,6 +475,7 @@ registry.slider = publicWidget.Widget.extend({
             $(el).css('min-height', '');
         });
         $(window).off('.slider');
+        this.$target.off('.carousel');
     },
 
     //--------------------------------------------------------------------------
@@ -1441,11 +1451,15 @@ registry.WebsiteAnimate = publicWidget.Widget.extend({
             // We need to offset for the change in position from some animation.
             // So we get the top value by not taking CSS transforms into calculations.
             // Cookies bar might be opened and considered as a modal but it is
-            // not really one (eg 'discrete' layout), and should not be used as
-            // scrollTop value.
-            const $closestModal = $el.closest(".modal:visible");
-            const scrollTop = $closestModal[0] ?
-                $closestModal.scrollTop() : this.$scrollingElement.scrollTop();
+            // not really one when there is no backdrop (eg 'discrete' layout),
+            // and should not be used as scrollTop value.
+            const closestModal = $el.closest(".modal:visible")[0];
+            let scrollTop = this.$scrollingElement[0].scrollTop;
+            if (closestModal) {
+                scrollTop = closestModal.classList.contains("s_popup_no_backdrop") ?
+                    closestModal.querySelector(".modal-content").scrollTop :
+                    closestModal.scrollTop;
+            }
             const elTop = this._getElementOffsetTop(el) - scrollTop;
             let visible;
             const footerEl = el.closest('.o_footer_slideout');

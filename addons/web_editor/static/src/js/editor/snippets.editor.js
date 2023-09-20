@@ -10,7 +10,7 @@ var Widget = require('web.Widget');
 var options = require('web_editor.snippets.options');
 const {ColorPaletteWidget} = require('web_editor.ColorPalette');
 const SmoothScrollOnDrag = require('web/static/src/js/core/smooth_scroll_on_drag.js');
-const {getCSSVariableValue} = require('web_editor.utils');
+const {getCSSVariableValue, shouldEditableMediaBeEditable} = require('web_editor.utils');
 const gridUtils = require('@web_editor/js/common/grid_layout_utils');
 const QWeb = core.qweb;
 const {closestElement, isUnremovable} = require('@web_editor/js/editor/odoo-editor/src/utils/utils');
@@ -1894,6 +1894,7 @@ var SnippetsMenu = Widget.extend({
             id: 'oe_manipulators',
         });
         this.$body.prepend(this.$snippetEditorArea);
+        this.options.getScrollOptions = this._getScrollOptions.bind(this);
 
         if (this.options.enableTranslation) {
             // Load the sidebar with the style tab only.
@@ -1915,7 +1916,6 @@ var SnippetsMenu = Widget.extend({
         this.emptyOptionsTabContent = document.createElement('div');
         this.emptyOptionsTabContent.classList.add('text-center', 'pt-5');
         this.emptyOptionsTabContent.append(_t("Select a block on your page to style it."));
-        this.options.getScrollOptions = this._getScrollOptions.bind(this);
 
         // Fetch snippet templates and compute it
         defs.push((async () => {
@@ -2055,12 +2055,6 @@ var SnippetsMenu = Widget.extend({
                 this.options.wysiwyg.odooEditor.addEventListener('observerApply', () => {
                     $(this.options.wysiwyg.odooEditor.editable).trigger('content_changed');
                 });
-                this.options.wysiwyg.odooEditor.addEventListener('historyRevert', _.debounce(() => {
-                    this.trigger_up('widgets_start_request', {
-                        $target: this.options.wysiwyg.$editable,
-                        editableMode: true,
-                    });
-                }, 50));
             }
 
             // Trigger a resize event once entering edit mode as the snippets
@@ -2831,18 +2825,29 @@ var SnippetsMenu = Widget.extend({
     _computeSelectorFunctions: function (selector, exclude, target, noCheck, isChildren, excludeParent) {
         var self = this;
 
-        // TODO the `:not([contenteditable="true"])` part is designed to make
-        // images with such attribute editable even when they are in an
-        // environment where editing is not normally possible. This should be
-        // reviewed if we are to handle more hierarchy of editable nodes being
+        // The `:not(.o_editable_media)` part is handled outside of the selector
+        // (see filterFunc).
+        // Note: the `:not([contenteditable="true"])` part was there for that
+        // same purpose before the implementation of the o_editable_media class.
+        // It still make sense for potential editable areas though. Although it
+        // should be reviewed if we are to handle more hierarchy of nodes being
         // editable despite their non editable environment.
         // Without the `:not(.s_social_media)`, it is no longer possible to edit
         // icons in the social media snippet. This should be fixed in a more
         // proper way to get rid of this hack.
-        exclude += `${exclude && ', '}.o_snippet_not_selectable, .o_not_editable:not(.s_social_media) :not([contenteditable="true"])`;
+        exclude += `${exclude && ', '}.o_snippet_not_selectable`;
 
         let filterFunc = function () {
-            return !$(this).is(exclude);
+            // Exclude what it is asked to exclude.
+            if ($(this).is(exclude)) {
+                return false;
+            }
+            // `o_editable_media` bypasses the `o_not_editable` class.
+            if (this.classList.contains('o_editable_media')) {
+                return shouldEditableMediaBeEditable(this);
+            }
+            return !$(this)
+                .is('.o_not_editable:not(.s_social_media) :not([contenteditable="true"])');
         };
         if (target) {
             const oldFilter = filterFunc;
