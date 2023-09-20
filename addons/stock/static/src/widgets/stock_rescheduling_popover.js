@@ -3,7 +3,7 @@ import { useService } from "@web/core/utils/hooks";
 import { registry } from "@web/core/registry";
 import { PopoverComponent, PopoverWidgetField } from '@stock/widgets/popover_widget';
 
-class  StockRescheculingPopoverComponent extends PopoverComponent {
+class StockReschedulingPopoverComponent extends PopoverComponent {
     setup(){
         this.action = useService("action");
     }
@@ -19,7 +19,7 @@ class  StockRescheculingPopoverComponent extends PopoverComponent {
     }
 }
 
-class StockRescheculingPopover extends PopoverWidgetField {
+class StockReschedulingPopover extends PopoverWidgetField {
     setup(){
         super.setup();
         this.color = this.jsonValue.color || 'text-danger';
@@ -33,8 +33,8 @@ class StockRescheculingPopover extends PopoverWidgetField {
         super.showPopup(ev);
     }
 }
-StockRescheculingPopover.components = {
-    Popover: StockRescheculingPopoverComponent
+StockReschedulingPopover.components = {
+    Popover: StockReschedulingPopoverComponent
 }
 
-registry.category("fields").add("stock_rescheduling_popover", StockRescheculingPopover);
+registry.category("fields").add("stock_rescheduling_popover", StockReschedulingPopover);
