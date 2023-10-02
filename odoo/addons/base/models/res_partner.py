@@ -767,9 +767,9 @@ class Partner(models.Model):
         order_by_rank = self.env.context.get('res_partner_search_mode') 
         if (name or order_by_rank) and operator in ('=', 'ilike', '=ilike', 'like', '=like'):
             self.check_access_rights('read')
-            where_query = self._where_calc(args)
+            where_query = self._where_calc(args, with_cte=True)
             self._apply_ir_rules(where_query, 'read')
-            from_clause, where_clause, where_clause_params = where_query.get_sql()
+            cte_clause, from_clause, where_clause, where_clause_params = where_query.get_sql()
             from_str = from_clause if from_clause else 'res_partner'
             where_str = where_clause and (" WHERE %s AND " % where_clause) or ' WHERE '
 
@@ -784,7 +784,8 @@ class Partner(models.Model):
 
             fields = self._get_name_search_order_by_fields()
 
-            query = """SELECT res_partner.id
+            query = """{cte_clause} 
+                    SELECT res_partner.id
                          FROM {from_str}
                       {where} ({email} {operator} {percent}
                            OR {display_name} {operator} {percent}
@@ -793,7 +794,8 @@ class Partner(models.Model):
                            -- don't panic, trust postgres bitmap
                      ORDER BY {fields} {display_name} {operator} {percent} desc,
                               {display_name}
-                    """.format(from_str=from_str,
+                    """.format(cte_clause=cte_clause, 
+                               from_str=from_str,
                                fields=fields,
                                where=where_str,
                                operator=operator,

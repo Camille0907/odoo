@@ -50,7 +50,7 @@ class PurchaseReport(models.Model):
             res = [{}]
 
         if avg_receipt_delay:
-            query = """ SELECT AVG(receipt_delay.po_receipt_delay)::decimal(16,2) AS avg_receipt_delay
+            query = """%s SELECT AVG(receipt_delay.po_receipt_delay)::decimal(16,2) AS avg_receipt_delay
                           FROM (
                               SELECT extract(epoch from age(po.effective_date, po.date_planned))/(24*60*60) AS po_receipt_delay
                               FROM purchase_order po
@@ -60,9 +60,9 @@ class PurchaseReport(models.Model):
                     """
 
             subdomain = domain + [('company_id', '=', self.env.company.id), ('effective_date', '!=', False)]
-            subtables, subwhere, subparams = expression(subdomain, self).query.get_sql()
+            cte_clause, subtables, subwhere, subparams = expression(subdomain, self).query.get_sql()
 
-            self.env.cr.execute(query % (subtables, subwhere), subparams)
+            self.env.cr.execute(query % (cte_clause, subtables, subwhere), subparams)
             res[0].update({
                 '__count': 1,
                 avg_receipt_delay.split(':')[0]: self.env.cr.fetchall()[0][0],

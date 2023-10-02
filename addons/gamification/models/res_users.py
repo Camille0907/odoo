@@ -99,8 +99,8 @@ class Users(models.Model):
         if not self:
             return []
 
-        where_query = self.env['res.users']._where_calc(user_domain)
-        user_from_clause, user_where_clause, where_clause_params = where_query.get_sql()
+        where_query = self.env['res.users']._where_calc(user_domain, with_cte=True)
+        cte_clause, user_from_clause, user_where_clause, where_clause_params = where_query.get_sql()
 
         params = []
         if from_date:
@@ -112,6 +112,7 @@ class Users(models.Model):
         params.append(tuple(self.ids))
 
         query = """
+{cte_clause}
 SELECT final.user_id, final.karma_gain_total, final.karma_position
 FROM (
     SELECT intermediate.user_id, intermediate.karma_gain_total, row_number() OVER (ORDER BY intermediate.karma_gain_total DESC) AS karma_position
@@ -126,6 +127,7 @@ FROM (
     ) intermediate
 ) final
 WHERE final.user_id IN %%s""" % {
+            'cte_clause': cte_clause,
             'user_from_clause': user_from_clause,
             'user_where_clause': user_where_clause or (not from_date and not to_date and 'TRUE') or '',
             'date_from_condition': date_from_condition if from_date else '',
@@ -156,12 +158,13 @@ WHERE final.user_id IN %%s""" % {
         if not self:
             return {}
 
-        where_query = self.env['res.users']._where_calc(user_domain)
-        user_from_clause, user_where_clause, where_clause_params = where_query.get_sql()
+        where_query = self.env['res.users']._where_calc(user_domain, with_cte=True)
+        cte_clause, user_from_clause, user_where_clause, where_clause_params = where_query.get_sql()
 
         # we search on every user in the DB to get the real positioning (not the one inside the subset)
         # then, we filter to get only the subset.
         query = """
+%(cte_clause)s
 SELECT sub.user_id, sub.karma_position
 FROM (
     SELECT "res_users"."id" as user_id, row_number() OVER (ORDER BY res_users.karma DESC) AS karma_position
@@ -169,6 +172,7 @@ FROM (
     WHERE %(user_where_clause)s
 ) sub
 WHERE sub.user_id IN %%s""" % {
+            'cte_clause': cte_clause, 
             'user_from_clause': user_from_clause,
             'user_where_clause': user_where_clause or 'TRUE',
         }

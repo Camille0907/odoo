@@ -3830,17 +3830,18 @@ class AccountMoveLine(models.Model):
             return
 
         # get the where clause
-        query = self._where_calc(list(self.env.context.get('domain_cumulated_balance') or []))
+        query = self._where_calc(list(self.env.context.get('domain_cumulated_balance') or []), with_cte=True)
         order_string = ", ".join(self._generate_order_by_inner(self._table, self.env.context.get('order_cumulated_balance'), query, reverse_direction=True))
-        from_clause, where_clause, where_clause_params = query.get_sql()
+        cte_clause, from_clause, where_clause, where_clause_params = query.get_sql()
         sql = """
+            %(cte_clause)s
             SELECT account_move_line.id, SUM(account_move_line.balance) OVER (
                 ORDER BY %(order_by)s
                 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
             )
             FROM %(from)s
             WHERE %(where)s
-        """ % {'from': from_clause, 'where': where_clause or 'TRUE', 'order_by': order_string}
+        """ % {'cte_clause': cte_clause, 'from': from_clause, 'where': where_clause or 'TRUE', 'order_by': order_string}
         self.env.cr.execute(sql, where_clause_params)
         result = {r[0]: r[1] for r in self.env.cr.fetchall()}
         for record in self:
@@ -5113,17 +5114,18 @@ class AccountMoveLine(models.Model):
         where_clause = ""
         where_clause_params = []
         tables = ''
+        cte_clause = ''
         if domain:
             domain.append(('display_type', 'not in', ('line_section', 'line_note')))
             domain.append(('parent_state', '!=', 'cancel'))
 
-            query = self._where_calc(domain)
+            query = self._where_calc(domain, with_cte=True)
 
             # Wrap the query with 'company_id IN (...)' to avoid bypassing company access rights.
             self._apply_ir_rules(query)
 
-            tables, where_clause, where_clause_params = query.get_sql()
-        return tables, where_clause, where_clause_params
+            cte_clause, tables, where_clause, where_clause_params = query.get_sql()
+        return cte_clause, tables, where_clause, where_clause_params
 
     def _reconciled_lines(self):
         ids = []

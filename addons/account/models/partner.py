@@ -244,11 +244,11 @@ class ResPartner(models.Model):
 
     @api.depends_context('company')
     def _credit_debit_get(self):
-        tables, where_clause, where_params = self.env['account.move.line'].with_context(state='posted', company_id=self.env.company.id)._query_get()
+        cte_clause, tables, where_clause, where_params = self.env['account.move.line'].with_context(state='posted', company_id=self.env.company.id)._query_get()
         where_params = [tuple(self.ids)] + where_params
         if where_clause:
             where_clause = 'AND ' + where_clause
-        self._cr.execute("""SELECT account_move_line.partner_id, act.type, SUM(account_move_line.amount_residual)
+        self._cr.execute(cte_clause + """SELECT account_move_line.partner_id, act.type, SUM(account_move_line.amount_residual)
                       FROM """ + tables + """
                       LEFT JOIN account_account a ON (account_move_line.account_id=a.id)
                       LEFT JOIN account_account_type act ON (a.user_type_id=act.id)

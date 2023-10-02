@@ -18,8 +18,8 @@ class ReportJournal(models.AbstractModel):
             move_state = ['posted']
 
         query_get_clause = self._get_query_get_clause(data)
-        params = [tuple(move_state), tuple(journal_ids)] + query_get_clause[2]
-        query = 'SELECT "account_move_line".id FROM ' + query_get_clause[0] + ', account_move am, account_account acc WHERE "account_move_line".account_id = acc.id AND "account_move_line".move_id=am.id AND am.state IN %s AND "account_move_line".journal_id IN %s AND ' + query_get_clause[1] + ' ORDER BY '
+        params = [tuple(move_state), tuple(journal_ids)] + query_get_clause[3]
+        query = query_get_clause[0] + 'SELECT "account_move_line".id FROM ' + query_get_clause[1] + ', account_move am, account_account acc WHERE "account_move_line".account_id = acc.id AND "account_move_line".move_id=am.id AND am.state IN %s AND "account_move_line".journal_id IN %s AND ' + query_get_clause[2] + ' ORDER BY '
         if sort_selection == 'date':
             query += '"account_move_line".date'
         else:
@@ -35,9 +35,9 @@ class ReportJournal(models.AbstractModel):
             move_state = ['posted']
 
         query_get_clause = self._get_query_get_clause(data)
-        params = [tuple(move_state), tuple(journal_id.ids)] + query_get_clause[2]
-        self.env.cr.execute('SELECT SUM(debit) FROM ' + query_get_clause[0] + ', account_move am '
-                        'WHERE "account_move_line".move_id=am.id AND am.state IN %s AND "account_move_line".journal_id IN %s AND ' + query_get_clause[1] + ' ',
+        params = [tuple(move_state), tuple(journal_id.ids)] + query_get_clause[3]
+        self.env.cr.execute(query_get_clause[0] + 'SELECT SUM(debit) FROM ' + query_get_clause[1] + ', account_move am '
+                        'WHERE "account_move_line".move_id=am.id AND am.state IN %s AND "account_move_line".journal_id IN %s AND ' + query_get_clause[2] + ' ',
                         tuple(params))
         return self.env.cr.fetchone()[0] or 0.0
 
@@ -47,9 +47,9 @@ class ReportJournal(models.AbstractModel):
             move_state = ['posted']
 
         query_get_clause = self._get_query_get_clause(data)
-        params = [tuple(move_state), tuple(journal_id.ids)] + query_get_clause[2]
-        self.env.cr.execute('SELECT SUM(credit) FROM ' + query_get_clause[0] + ', account_move am '
-                        'WHERE "account_move_line".move_id=am.id AND am.state IN %s AND "account_move_line".journal_id IN %s AND ' + query_get_clause[1] + ' ',
+        params = [tuple(move_state), tuple(journal_id.ids)] + query_get_clause[3]
+        self.env.cr.execute(query_get_clause[0] + 'SELECT SUM(credit) FROM ' + query_get_clause[1] + ', account_move am '
+                        'WHERE "account_move_line".move_id=am.id AND am.state IN %s AND "account_move_line".journal_id IN %s AND ' + query_get_clause[2] + ' ',
                         tuple(params))
         return self.env.cr.fetchone()[0] or 0.0
 
@@ -59,15 +59,15 @@ class ReportJournal(models.AbstractModel):
             move_state = ['posted']
 
         query_get_clause = self._get_query_get_clause(data)
-        params = [tuple(move_state), tuple(journal_id.ids)] + query_get_clause[2]
-        query = """
+        params = [tuple(move_state), tuple(journal_id.ids)] + query_get_clause[3]
+        query = query_get_clause[0] + """
             SELECT rel.account_tax_id, SUM("account_move_line".balance) AS base_amount
-            FROM account_move_line_account_tax_rel rel, """ + query_get_clause[0] + """ 
+            FROM account_move_line_account_tax_rel rel, """ + query_get_clause[1] + """ 
             LEFT JOIN account_move am ON "account_move_line".move_id = am.id
             WHERE "account_move_line".id = rel.account_move_line_id
                 AND am.state IN %s
                 AND "account_move_line".journal_id IN %s
-                AND """ + query_get_clause[1] + """
+                AND """ + query_get_clause[2] + """
            GROUP BY rel.account_tax_id"""
         self.env.cr.execute(query, tuple(params))
         ids = []
@@ -79,8 +79,8 @@ class ReportJournal(models.AbstractModel):
 
         res = {}
         for tax in self.env['account.tax'].browse(ids):
-            self.env.cr.execute('SELECT sum(debit - credit) FROM ' + query_get_clause[0] + ', account_move am '
-                'WHERE "account_move_line".move_id=am.id AND am.state IN %s AND "account_move_line".journal_id IN %s AND ' + query_get_clause[1] + ' AND tax_line_id = %s',
+            self.env.cr.execute(query_get_clause[0] + 'SELECT sum(debit - credit) FROM ' + query_get_clause[1] + ', account_move am '
+                'WHERE "account_move_line".move_id=am.id AND am.state IN %s AND "account_move_line".journal_id IN %s AND ' + query_get_clause[2] + ' AND tax_line_id = %s',
                 tuple(params + [tax.id]))
             res[tax] = {
                 'base_amount': base_amounts[tax.id],

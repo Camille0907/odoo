@@ -808,7 +808,7 @@ class MailActivityMixin(models.AbstractModel):
         self._flush_search(domain, fields=[group_by_fname], order='id')
         self.env['mail.activity'].flush(['res_model', 'res_id', 'user_id', 'date_deadline'])
 
-        query = self._where_calc(domain)
+        query = self._where_calc(domain, with_cte=True)
         self._apply_ir_rules(query, 'read')
         gb = group_by.partition(':')[0]
         annotated_groupbys = [
@@ -824,9 +824,10 @@ class MailActivityMixin(models.AbstractModel):
             '%s as "%s"' % (gb['qualified_field'], gb['groupby'])
             for gb in annotated_groupbys
         ]
-        from_clause, where_clause, where_params = query.get_sql()
+        cte_clause, from_clause, where_clause, where_params = query.get_sql()
         tz = self._context.get('tz') or self.env.user.tz or 'UTC'
         select_query = """
+            {cte_clause}
             SELECT 1 AS id, count(*) AS "__count", {fields}
             FROM {from_clause}
             JOIN (
@@ -846,6 +847,7 @@ class MailActivityMixin(models.AbstractModel):
             WHERE {where_clause}
             GROUP BY {group_by}
         """.format(
+            cte_clause=cte_clause, 
             fields=', '.join(select_terms),
             from_clause=from_clause,
             model=self._name,

@@ -147,14 +147,15 @@ class GamificationBadge(models.Model):
             return
 
         Users = self.env["res.users"]
-        query = Users._where_calc([])
+        query = Users._where_calc([], with_cte=True)
         Users._apply_ir_rules(query)
         badge_alias = query.join("res_users", "id", "gamification_badge_user", "user_id", "badges")
 
-        tables, where_clauses, where_params = query.get_sql()
+        cte_clause, tables, where_clauses, where_params = query.get_sql()
 
         self.env.cr.execute(
             f"""
+              {cte_clause}
               SELECT {badge_alias}.badge_id, count(res_users.id) as stat_count,
                      count(distinct(res_users.id)) as stat_count_distinct,
                      array_agg(distinct(res_users.id)) as unique_owner_ids

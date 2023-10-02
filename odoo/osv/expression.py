@@ -122,6 +122,7 @@ import traceback
 from functools import partial
 
 from datetime import date, datetime, time
+import hashlib
 import odoo.modules
 from odoo.osv.query import Query, _generate_table_alias
 from odoo.tools import pycompat
@@ -180,7 +181,7 @@ TRUE_DOMAIN = [TRUE_LEAF]
 FALSE_DOMAIN = [FALSE_LEAF]
 
 _logger = logging.getLogger(__name__)
-
+#_logger.setLevel(logging.DEBUG)
 
 # --------------------------------------------------
 # Generic domain manipulation
@@ -414,7 +415,7 @@ class expression(object):
         For more info: http://christophe-simonis-at-tiny.blogspot.com/2008/08/new-new-domain-notation.html
     """
 
-    def __init__(self, domain, model, alias=None, query=None):
+    def __init__(self, domain, model, alias=None, query=None, with_cte=True):
         """ Initialize expression object and automatically parse the expression
             right after initialization.
 
@@ -435,8 +436,12 @@ class expression(object):
         # normalize and prepare the expression for parsing
         self.expression = distribute_not(normalize_domain(domain))
 
+        # initialise ctes array
+        self.ctes = []
+        self._with_cte = with_cte
+
         # this object handles all the joins
-        self.query = Query(model.env.cr, model._table, model._table_query) if query is None else query
+        self.query = Query(model.env.cr, model._table, model._table_query, with_cte=self._with_cte) if query is None else query
 
         # parse the domain expression
         self.parse()
@@ -593,8 +598,8 @@ class expression(object):
         def pop_result():
             return result_stack.pop()
 
-        def push_result(query, params):
-            result_stack.append((query, params))
+        def push_result(query, params, cte):
+            result_stack.append((query, params, cte))
 
         # process domain from right to left; stack contains domain leaves, in
         # the form: (leaf, corresponding model, corresponding table alias)
@@ -618,18 +623,18 @@ class expression(object):
 
             if is_operator(leaf):
                 if leaf == NOT_OPERATOR:
-                    expr, params = pop_result()
-                    push_result('(NOT (%s))' % expr, params)
+                    expr, params, cte = pop_result()
+                    push_result('(NOT (%s))' % expr, params, cte)
                 else:
                     ops = {AND_OPERATOR: '(%s AND %s)', OR_OPERATOR: '(%s OR %s)'}
-                    lhs, lhs_params = pop_result()
-                    rhs, rhs_params = pop_result()
-                    push_result(ops[leaf] % (lhs, rhs), lhs_params + rhs_params)
+                    lhs, lhs_params, lcte  = pop_result()
+                    rhs, rhs_params, rcte = pop_result()
+                    push_result(ops[leaf] % (lhs, rhs), lhs_params + rhs_params, lcte + rcte)
                 continue
 
             if is_boolean(leaf):
-                expr, params = self.__leaf_to_sql(leaf, model, alias)
-                push_result(expr, params)
+                expr, params, cte = self.__leaf_to_sql(leaf, model, alias)
+                push_result(expr, params, cte)
                 continue
 
             # Get working variables
@@ -690,6 +695,7 @@ class expression(object):
             elif len(path) > 1 and field.store and field.type == 'one2many' and field.auto_join:
                 # use a subquery bypassing access rules and business logic
                 domain = [(path[1], operator, right)] + field.get_domain_list(model)
+                # Todo check if I have to use with_cte here
                 query = comodel.with_context(**field.context)._where_calc(domain)
                 subquery, subparams = query.select('"%s"."%s"' % (comodel._table, field.inverse_name))
                 push(('id', 'inselect', (subquery, subparams)), model, alias, internal=True)
@@ -765,16 +771,18 @@ class expression(object):
                         # of FALSE.  This may discard expected results, as for
                         # instance "id NOT IN (42, NULL)" is never TRUE.
                         in_ = 'NOT IN' if operator in NEGATIVE_TERM_OPERATORS else 'IN'
+                        ctes = []
                         if isinstance(ids2, Query):
                             if not inverse_field.required:
                                 ids2.add_where(f'"{comodel._table}"."{inverse_field.name}" IS NOT NULL')
-                            subquery, subparams = ids2.subselect(f'"{comodel._table}"."{inverse_field.name}"')
+                            ctes, subquery, subparams = ids2.subselect(f'"{comodel._table}"."{inverse_field.name}"')
                         else:
+                            # TODO need ctes?
                             subquery = f'SELECT "{inverse_field.name}" FROM "{comodel._table}" WHERE "id" IN %s'
                             if not inverse_field.required:
                                 subquery += f' AND "{inverse_field.name}" IS NOT NULL'
                             subparams = [tuple(ids2) or (None,)]
-                        push_result(f'("{alias}"."id" {in_} ({subquery}))', subparams)
+                        push_result(f'("{alias}"."id" {in_} ({subquery}))', subparams, ctes)
                     else:
                         # determine ids1 in model related to ids2
                         recs = comodel.browse(ids2).sudo().with_context(prefetch_fields=False)
@@ -820,7 +828,7 @@ class expression(object):
                                 WHERE "{rel_alias}"."{rel_id1}" = "{alias}".id
                                 AND "{rel_alias}"."{rel_id2}" IN %s
                             )
-                        """, [tuple(ids2) or (None,)])
+                        """, [tuple(ids2) or (None,)], [])
 
                 elif right is not False:
                     # determine ids2 in comodel
@@ -836,10 +844,11 @@ class expression(object):
 
                     if isinstance(ids2, Query):
                         # rewrite condition in terms of ids2
-                        subquery, params = ids2.subselect()
+                        ctes, subquery, params = ids2.subselect()
                         term_id2 = f"({subquery})"
                     else:
                         # rewrite condition in terms of ids2
+                        ctes = []
                         term_id2 = "%s"
                         params = [tuple(it for it in ids2 if it) or (None,)]
 
@@ -851,7 +860,7 @@ class expression(object):
                             WHERE "{rel_alias}"."{rel_id1}" = "{alias}".id
                             AND "{rel_alias}"."{rel_id2}" IN {term_id2}
                         )
-                    """, params)
+                    """, params, ctes)
 
                 else:
                     # rewrite condition to match records with/without relations
@@ -862,7 +871,7 @@ class expression(object):
                             SELECT 1 FROM "{rel_table}" AS "{rel_alias}"
                             WHERE "{rel_alias}"."{rel_id1}" = "{alias}".id
                         )
-                    """, [])
+                    """, [], [])
 
             elif field.type == 'many2one':
                 if operator in HIERARCHY_FUNCS:
@@ -895,8 +904,8 @@ class expression(object):
                         push(_get_expression(comodel, left, right, operator), model, alias)
                     else:
                         # right == [] or right == False and all other cases are handled by __leaf_to_sql()
-                        expr, params = self.__leaf_to_sql(leaf, model, alias)
-                        push_result(expr, params)
+                        expr, params, cte = self.__leaf_to_sql(leaf, model, alias)
+                        push_result(expr, params, cte)
 
             # -------------------------------------------------
             # BINARY FIELDS STORED IN ATTACHMENT
@@ -936,8 +945,8 @@ class expression(object):
                             right = datetime.combine(right, time.min)
                         push((left, operator, right), model, alias)
                     else:
-                        expr, params = self.__leaf_to_sql(leaf, model, alias)
-                        push_result(expr, params)
+                        expr, params, cte = self.__leaf_to_sql(leaf, model, alias)
+                        push_result(expr, params, cte)
 
                 elif field.translate is True and right:
                     need_wildcard = operator in ('like', 'ilike', 'not like', 'not ilike')
@@ -951,11 +960,11 @@ class expression(object):
 
                     left = unaccent(model._generate_translated_field(alias, left, self.query))
                     instr = unaccent('%s')
-                    push_result(f"{left} {sql_operator} {instr}", [right])
+                    push_result(f"{left} {sql_operator} {instr}", [right], [])
 
                 else:
-                    expr, params = self.__leaf_to_sql(leaf, model, alias)
-                    push_result(expr, params)
+                    expr, params, cte = self.__leaf_to_sql(leaf, model, alias)
+                    push_result(expr, params, cte)
 
         # ----------------------------------------
         # END OF PARSING FULL DOMAIN
@@ -963,8 +972,9 @@ class expression(object):
         # ----------------------------------------
 
         [self.result] = result_stack
-        where_clause, where_params = self.result
+        where_clause, where_params, ctes = self.result
         self.query.add_where(where_clause, where_params)
+        self.query.add_ctes(ctes)
 
     def __leaf_to_sql(self, leaf, model, alias):
         left, operator, right = leaf
@@ -979,6 +989,8 @@ class expression(object):
 
         table_alias = '"%s"' % alias
 
+        #TODO set CTE in every if
+        cte = []
         if leaf == TRUE_LEAF:
             query = 'TRUE'
             params = []
@@ -1006,7 +1018,9 @@ class expression(object):
                     query = '(%s."%s" IS NULL)' % (table_alias, left)
                 params = []
             elif isinstance(right, Query):
-                subquery, subparams = right.subselect()
+                cte, subquery, subparams = right.subselect()
+                if cte:
+                    subquery = cte[0].split(' ', 1)[0]
                 query = '(%s."%s" %s (%s))' % (table_alias, left, operator, subquery)
                 params = subparams
             elif isinstance(right, (list, tuple)):
@@ -1035,7 +1049,15 @@ class expression(object):
                 raise ValueError("Invalid domain term %r" % (leaf,))
 
         elif left in model and model._fields[left].type == "boolean" and ((operator == '=' and right is False) or (operator == '!=' and right is True)):
-            query = '(%s."%s" IS NULL or %s."%s" = false )' % (table_alias, left, table_alias, left)
+            if self._with_cte:
+                cte_query = ' AS (SELECT %s.id FROM "%s" AS %s WHERE (%s."%s" IS NULL or %s."%s" = false ))' % (table_alias, model._table, table_alias, table_alias, left, table_alias, left)
+                #keep the name of the sub accross executions to ease debug
+                cte_id = "sub_%s" % hashlib.md5(cte_query.encode()).hexdigest()
+                cte = [cte_id + cte_query]
+                query = '%s.id in (SELECT id FROM %s)' % (table_alias, cte_id)
+                
+            else:
+                query = '(%s."%s" IS NULL or %s."%s" = false )' % (table_alias, left, table_alias, left)
             params = []
 
         elif (right is False or right is None) and (operator == '='):
@@ -1043,7 +1065,14 @@ class expression(object):
             params = []
 
         elif left in model and model._fields[left].type == "boolean" and ((operator == '!=' and right is False) or (operator == '==' and right is True)):
-            query = '(%s."%s" IS NOT NULL and %s."%s" != false)' % (table_alias, left, table_alias, left)
+            if self._with_cte:
+                cte_query = ' AS (SELECT %s.id FROM "%s" AS %s WHERE (%s."%s" IS NOT NULL or %s."%s" != false ))' % (table_alias, model._table, table_alias, table_alias, left, table_alias, left)
+                #keep the name of the sub accross executions to ease debug
+                cte_id = "sub_%s" % hashlib.md5(cte_query.encode()).hexdigest()
+                cte = [cte_id + cte_query]
+                query = '%s.id in (SELECT id FROM %s)' % (table_alias, cte_id)
+            else:
+                query = '(%s."%s" IS NOT NULL and %s."%s" != false)' % (table_alias, left, table_alias, left)
             params = []
 
         elif (right is False or right is None) and (operator == '!='):
@@ -1057,7 +1086,7 @@ class expression(object):
                 params = []
             else:
                 # '=?' behaves like '=' in other cases
-                query, params = self.__leaf_to_sql((left, '=', right), model, alias)
+                query, params, cte = self.__leaf_to_sql((left, '=', right), model, alias)
 
         else:
             need_wildcard = operator in ('like', 'ilike', 'not like', 'not ilike')
@@ -1080,7 +1109,7 @@ class expression(object):
                 field = model._fields[left]
                 params = [field.convert_to_column(right, model, validate=False)]
 
-        return query, params
+        return query, params, cte 
 
     def to_sql(self):
         warnings.warn("deprecated expression.to_sql(), use expression.query instead",

@@ -34,10 +34,11 @@ class CrmTeam(models.Model):
         query = self.env['sale.order']._where_calc([
             ('team_id', 'in', self.ids),
             ('state', 'in', ['draft', 'sent']),
-        ])
+        ], with_cte=True)
         self.env['sale.order']._apply_ir_rules(query, 'read')
-        _, where_clause, where_clause_args = query.get_sql()
+        cte_clause, _, where_clause, where_clause_args = query.get_sql()
         select_query = """
+            %s
             SELECT team_id, count(*), sum(amount_total /
                 CASE COALESCE(currency_rate, 0)
                 WHEN 0 THEN 1.0
@@ -47,7 +48,7 @@ class CrmTeam(models.Model):
             FROM sale_order
             WHERE %s
             GROUP BY team_id
-        """ % where_clause
+        """ % (cte_clause, where_clause)
         self.env.cr.execute(select_query, where_clause_args)
         quotation_data = self.env.cr.dictfetchall()
         teams = self.browse()

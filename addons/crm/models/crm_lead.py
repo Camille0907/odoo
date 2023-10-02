@@ -2091,16 +2091,16 @@ class Lead(models.Model):
 
         if domain:
             # active_test = False as domain should take active into 'active' field it self
-            from_clause, where_clause, where_params = self.env['crm.lead'].with_context(active_test=False)._where_calc(domain).get_sql()
+            cte_clause, from_clause, where_clause, where_params = self.env['crm.lead'].with_context(active_test=False)._where_calc(domain, with_cte=True).get_sql()
             str_fields = ", ".join(["{}"] * len(pls_fields))
             args = [sql.Identifier(field) for field in pls_fields]
 
             # Get leads values
             self.flush(['probability'])
-            query = """SELECT id, probability, %s
+            query = """%s SELECT id, probability, %s
                         FROM %s
                         WHERE %s order by team_id asc"""
-            query = sql.SQL(query % (str_fields, from_clause, where_clause)).format(*args)
+            query = sql.SQL(query % (cte_clause, str_fields, from_clause, where_clause)).format(*args)
             self._cr.execute(query, where_params)
             lead_results = self._cr.dictfetchall()
 

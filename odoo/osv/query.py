@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import logging
 import re
 import warnings
 from zlib import crc32
 
 from odoo.tools import lazy_property
 
+_logger = logging.getLogger(__name__)
+#_logger.setLevel(logging.DEBUG)
 IDENT_RE = re.compile(r'^[a-z_][a-z0-9_$]*$', re.I)
 
 
@@ -55,7 +58,7 @@ class Query(object):
     :param table: if given, a table expression (identifier or query)
     """
 
-    def __init__(self, cr, alias, table=None):
+    def __init__(self, cr, alias, table=None, with_cte=False):
         # database cursor
         self._cr = cr
 
@@ -69,6 +72,9 @@ class Query(object):
         # the list of parameters
         self._where_clauses = []
         self._where_params = []
+        
+        self._with_cte = with_cte
+        self._ctes = []
 
         # order, limit, offset
         self.order = None
@@ -84,6 +90,13 @@ class Query(object):
         """ Add a condition to the where clause. """
         self._where_clauses.append(where_clause)
         self._where_params.extend(where_params)
+    def add_ctes(self, ctes):
+        """ Add a cte to the query. """
+        for cte in ctes:
+            self._ctes.append(cte)
+
+    def enable_ctes(self):
+        self._ctes = True
 
     def join(self, lhs_alias, lhs_column, rhs_table, rhs_column, link, extra=None, extra_params=()):
         """ Add an INNER JOIN to the current table (if necessary), and return
@@ -119,8 +132,14 @@ class Query(object):
 
     def select(self, *args):
         """ Return the SELECT query as a pair ``(query_string, query_params)``. """
-        from_clause, where_clause, params = self.get_sql()
-        query_str = 'SELECT {} FROM {} WHERE {}{}{}{}'.format(
+        cte_clause = ''
+        if self._with_cte:
+            cte_clause, from_clause, where_clause, params = self.get_sql()
+        else:
+            from_clause, where_clause, params = self.get_sql()
+
+        query_str = '{} SELECT {} FROM {} WHERE {}{}{}{}'.format(
+            cte_clause,
             ", ".join(args or [f'"{next(iter(self._tables))}".id']),
             from_clause,
             where_clause or "TRUE",
@@ -128,6 +147,9 @@ class Query(object):
             (" LIMIT %d" % self.limit) if self.limit else "",
             (" OFFSET %d" % self.offset) if self.offset else "",
         )
+        if cte_clause:
+            _logger.info("QUERY OPTIMIZED WITH CTE: %s" % cte_clause)
+            _logger.info("QUERY DETAILS: %s" % query_str)
         return query_str, params
 
     def subselect(self, *args):
@@ -138,13 +160,16 @@ class Query(object):
             # in this case, the ORDER BY clause is necessary
             return self.select(*args)
 
-        from_clause, where_clause, params = self.get_sql()
+        if self._with_cte:
+            cte_clause, from_clause, where_clause, params = self.get_sql()
+        else:
+            from_clause, where_clause, params = self.get_sql()
         query_str = 'SELECT {} FROM {} WHERE {}'.format(
             ", ".join(args or [f'"{next(iter(self._tables))}".id']),
             from_clause,
             where_clause or "TRUE",
-        )
-        return query_str, params
+        )     
+        return self._ctes, query_str, params
 
     def get_sql(self):
         """ Returns (query_from, query_where, query_params). """
@@ -155,9 +180,14 @@ class Query(object):
             joins.append(f'{kind} {_from_table(table, alias)} ON ({condition})')
             params.extend(condition_params)
 
+        #TODO ensure that there are not 2 cte with the same definitien and thus the same name. 
+        cte_clause = '' if not self._ctes else "WITH %s " % ", ".join(self._ctes) 
         from_clause = " ".join([", ".join(tables)] + joins)
         where_clause = " AND ".join(self._where_clauses)
-        return from_clause, where_clause, params + self._where_params
+        if self._with_cte:
+            return cte_clause, from_clause, where_clause, params + self._where_params
+        else:
+            return from_clause, where_clause, params + self._where_params
 
     @lazy_property
     def _result(self):

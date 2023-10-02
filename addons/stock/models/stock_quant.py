@@ -293,11 +293,11 @@ class StockQuant(models.Model):
 
         # Copy code of _search for special NULLS FIRST/LAST order
         self.check_access_rights('read')
-        query = self._where_calc(domain)
+        query = self._where_calc(domain, with_cte=True)
         self._apply_ir_rules(query, 'read')
-        from_clause, where_clause, where_clause_params = query.get_sql()
+        cte_clause, from_clause, where_clause, where_clause_params = query.get_sql()
         where_str = where_clause and (" WHERE %s" % where_clause) or ''
-        query_str = 'SELECT "%s".id FROM ' % self._table + from_clause + where_str + " ORDER BY "+ removal_strategy_order
+        query_str = cte_clause + 'SELECT "%s".id FROM ' % self._table + from_clause + where_str + " ORDER BY "+ removal_strategy_order
         self._cr.execute(query_str, where_clause_params)
         res = self._cr.fetchall()
         # No uniquify list necessary as auto_join is not applied anyways...

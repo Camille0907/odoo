@@ -3520,14 +3520,20 @@ class Many2many(_RelationalMulti):
         comodel = records.env[self.comodel_name].with_context(**context)
         domain = self.get_domain_list(records)
         comodel._flush_search(domain)
-        wquery = comodel._where_calc(domain)
+        wquery = comodel._where_calc(domain, with_cte=True)
         comodel._apply_ir_rules(wquery, 'read')
         order_by = comodel._generate_order_by(None, wquery)
-        from_c, where_c, where_params = wquery.get_sql()
-        query = """ SELECT {rel}.{id1}, {rel}.{id2} FROM {rel}, {from_c}
+        sqls = wquery.get_sql()
+        # TODO improve this test
+        if len(sqls) == 4:
+            cte_clause, from_c, where_c, where_params = wquery.get_sql()
+        else: 
+            cte_clause = ''
+            from_c, where_c, where_params = wquery.get_sql()
+        query = """ {cte_clause} SELECT {rel}.{id1}, {rel}.{id2} FROM {rel}, {from_c}
                     WHERE {where_c} AND {rel}.{id1} IN %s AND {rel}.{id2} = {tbl}.id
                     {order_by} {limit} OFFSET {offset}
-                """.format(rel=self.relation, id1=self.column1, id2=self.column2,
+                """.format(cte_clause=cte_clause, rel=self.relation, id1=self.column1, id2=self.column2,
                            tbl=comodel._table, from_c=from_c, where_c=where_c or '1=1',
                            limit=(' LIMIT %d' % self.limit) if self.limit else '',
                            offset=0, order_by=order_by)

@@ -168,7 +168,7 @@ class CrmTeam(models.Model):
             x_values should be weeks.
             y_values are floats.
         """
-        query = """SELECT %(x_query)s as x_value, %(y_query)s as y_value
+        query = """%(cte_clause)s SELECT %(x_query)s as x_value, %(y_query)s as y_value
                      FROM %(table)s
                     WHERE team_id = %(team_id)s
                       AND DATE(%(date_column)s) >= %(start_date)s
@@ -181,13 +181,14 @@ class CrmTeam(models.Model):
         GraphModel = self.env[dashboard_graph_model]
         graph_table = GraphModel._table
         extra_conditions = self._extra_sql_conditions()
-        where_query = GraphModel._where_calc([])
+        where_query = GraphModel._where_calc([], with_cte=True)
         GraphModel._apply_ir_rules(where_query, 'read')
-        from_clause, where_clause, where_clause_params = where_query.get_sql()
+        cte_clause, from_clause, where_clause, where_clause_params = where_query.get_sql()
         if where_clause:
             extra_conditions += " AND " + where_clause
 
         query = query % {
+            'cte_clause': cte_clause, 
             'x_query': self._graph_x_query(),
             'y_query': self._graph_y_query(),
             'table': graph_table,

@@ -187,6 +187,7 @@ class IrRule(models.Model):
             # involve objects on which the real uid has no acces rights.
             # This means also there is no implicit restriction (e.g. an object
             # references another object the user can't see).
+            # Todo maybe something to do here even if deprecated
             query = self.env[model_name].sudo()._where_calc(dom, active_test=False)
             return query.where_clause, query.where_clause_params, query.tables
         return [], [], ['"%s"' % self.env[model_name]._table]

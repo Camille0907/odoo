@@ -18,7 +18,7 @@ class QueryTestCase(BaseCase):
         alias = query.left_join("product_product", "user_id", "res_user", "id", "user_id")
         self.assertEqual(alias, 'product_product__user_id')
 
-        from_clause, where_clause, where_params = query.get_sql()
+        cte_clause, from_clause, where_clause, where_params = query.get_sql()
         self.assertEqual(from_clause,
             '"product_product", "product_template" JOIN "product_category" AS "product_template__categ_id" ON ("product_template"."categ_id" = "product_template__categ_id"."id") LEFT JOIN "res_user" AS "product_product__user_id" ON ("product_product"."user_id" = "product_product__user_id"."id")')
         self.assertEqual(where_clause, "product_product.template_id = product_template.id")
@@ -34,7 +34,7 @@ class QueryTestCase(BaseCase):
         alias = query.left_join("product_template__categ_id", "user_id", "res_user", "id", "user_id")
         self.assertEqual(alias, 'product_template__categ_id__user_id')
 
-        from_clause, where_clause, where_params = query.get_sql()
+        cte_clause, from_clause, where_clause, where_params = query.get_sql()
         self.assertEqual(from_clause,
             '"product_product", "product_template" JOIN "product_category" AS "product_template__categ_id" ON ("product_template"."categ_id" = "product_template__categ_id"."id") LEFT JOIN "res_user" AS "product_template__categ_id__user_id" ON ("product_template__categ_id"."user_id" = "product_template__categ_id__user_id"."id")')
         self.assertEqual(where_clause, "product_product.template_id = product_template.id")
@@ -53,7 +53,7 @@ class QueryTestCase(BaseCase):
         query.add_table('account.account')
         query.add_where("product_category.expense_account_id = account_account.id")
 
-        from_clause, where_clause, where_params = query.get_sql()
+        cte_clause, from_clause, where_clause, where_params = query.get_sql()
         self.assertEqual(from_clause,
             '"product_product", "product_template", "account.account" JOIN "product_category" AS "product_template__categ_id" ON ("product_template"."categ_id" = "product_template__categ_id"."id") LEFT JOIN "res_user" AS "product_template__categ_id__user_id" ON ("product_template__categ_id"."user_id" = "product_template__categ_id__user_id"."id")')
         self.assertEqual(where_clause, "product_product.template_id = product_template.id AND product_category.expense_account_id = account_account.id")
@@ -81,21 +81,23 @@ class QueryTestCase(BaseCase):
         tmp_cat_stm_par = query.join(tmp_cat_stm, 'partner_id', 'res_partner', 'id', 'partner_id')
         self.assertEqual(tmp_cat_stm_par, 'product_product__product_tmpl_id__product_category_id__00363fdd')
 
+
+    #TODO change tests
     def test_table_expression(self):
         query = Query(None, 'foo')
-        from_clause, where_clause, where_params = query.get_sql()
+        cte_clause, from_clause, where_clause, where_params = query.get_sql()
         self.assertEqual(from_clause, '"foo"')
 
         query = Query(None, 'bar', 'SELECT id FROM foo')
-        from_clause, where_clause, where_params = query.get_sql()
+        cte_clause, from_clause, where_clause, where_params = query.get_sql()
         self.assertEqual(from_clause, '(SELECT id FROM foo) AS "bar"')
 
         query = Query(None, 'foo')
         query.add_table('bar', 'SELECT id FROM foo')
-        from_clause, where_clause, where_params = query.get_sql()
+        cte_clause, from_clause, where_clause, where_params = query.get_sql()
         self.assertEqual(from_clause, '"foo", (SELECT id FROM foo) AS "bar"')
 
         query = Query(None, 'foo')
         query.join('foo', 'bar_id', 'SELECT id FROM foo', 'id', 'bar')
-        from_clause, where_clause, where_params = query.get_sql()
+        cte_clause, from_clause, where_clause, where_params = query.get_sql()
         self.assertEqual(from_clause, '"foo" JOIN (SELECT id FROM foo) AS "foo__bar" ON ("foo"."bar_id" = "foo__bar"."id")')

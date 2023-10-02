@@ -2274,7 +2274,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
     @api.model
     def _read_group_raw(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
         self.check_access_rights('read')
-        query = self._where_calc(domain)
+        query = self._where_calc(domain, with_cte=True)
         fields = fields or [f.name for f in self._fields.values() if f.store]
 
         groupby = [groupby] if isinstance(groupby, str) else list(OrderedSet(groupby))
@@ -2349,7 +2349,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         self._flush_search(domain, fields=fnames + groupby_fields)
 
         groupby_terms, orderby_terms = self._read_group_prepare(order, aggregated_fields, annotated_groupbys, query)
-        from_clause, where_clause, where_clause_params = query.get_sql()
+        cte_clause, from_clause, where_clause, where_clause_params = query.get_sql()
         if lazy and (len(groupby_fields) >= 2 or not self._context.get('group_by_no_leaf')):
             count_field = groupby_fields[0] if len(groupby_fields) >= 1 else '_'
         else:
@@ -2360,6 +2360,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         prefix_term = lambda prefix, term: ('%s %s' % (prefix, term)) if term else ''
 
         query = """
+            %(cte_clause)s
             SELECT min("%(table)s".id) AS id, count("%(table)s".id) AS "%(count_field)s" %(extra_fields)s
             FROM %(from)s
             %(where)s
@@ -2368,6 +2369,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             %(limit)s
             %(offset)s
         """ % {
+            'cte_clause': cte_clause, 
             'table': self._table,
             'count_field': count_field,
             'extra_fields': prefix_terms(',', select_terms),
@@ -4249,7 +4251,7 @@ Fields:
 
     # TODO: ameliorer avec NULL
     @api.model
-    def _where_calc(self, domain, active_test=True):
+    def _where_calc(self, domain, active_test=True, with_cte=False):
         """Computes the WHERE clause needed to implement an OpenERP domain.
         :param domain: the domain to compute
         :type domain: list
@@ -4267,7 +4269,7 @@ Fields:
                 domain = [(self._active_name, '=', 1)] + domain
 
         if domain:
-            return expression.expression(domain, self).query
+            return expression.expression(domain, self, with_cte=with_cte).query
         else:
             return Query(self.env.cr, self._table, self._table_query)
 
@@ -4279,6 +4281,8 @@ Fields:
             ))
         return True
 
+    #TODO Ensure that the query doesn't return with cte after _apply_ir_rules. 
+    # Up to now I don't force with_cte=True in the expression constructor to avoid return a query that would be used with a .get_sql() not waiting for a four elements tupple
     @api.model
     def _apply_ir_rules(self, query, mode='read'):
         """Add what's missing in ``query`` to implement all appropriate ir.rules
@@ -4511,7 +4515,8 @@ Fields:
         # the flush must be done before the _where_calc(), as the latter can do some selects
         self._flush_search(args, order=order)
 
-        query = self._where_calc(args)
+        #TODO ensure that It's ok to set with_cte=True here
+        query = self._where_calc(args, with_cte=True)
         self._apply_ir_rules(query, 'read')
 
         if count:

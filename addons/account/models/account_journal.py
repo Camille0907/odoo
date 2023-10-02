@@ -715,10 +715,10 @@ class AccountJournal(models.Model):
             ('display_type', 'not in', ('line_section', 'line_note')),
             ('parent_state', '!=', 'cancel'),
         ]
-        query = self.env['account.move.line']._where_calc(domain)
-        tables, where_clause, where_params = query.get_sql()
+        query = self.env['account.move.line']._where_calc(domain, with_cte=True)
+        cte_clause, tables, where_clause, where_params = query.get_sql()
 
-        query = '''
+        query = cte_clause + '''
             SELECT
                 COUNT(account_move_line.id) AS nb_lines,
                 COALESCE(SUM(account_move_line.balance), 0.0),
@@ -762,10 +762,10 @@ class AccountJournal(models.Model):
             ('reconciled', '=', False),
             ('journal_id', '=', self.id),
         ]
-        query = self.env['account.move.line']._where_calc(domain)
-        tables, where_clause, where_params = query.get_sql()
+        query = self.env['account.move.line']._where_calc(domain, with_cte=True)
+        cte_clause, tables, where_clause, where_params = query.get_sql()
 
-        self._cr.execute('''
+        self._cr.execute(cte_clause + '''
             SELECT
                 COUNT(account_move_line.id) AS nb_lines,
                 account_move_line.currency_id,

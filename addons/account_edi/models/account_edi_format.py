@@ -546,8 +546,8 @@ class AccountEdiFormat(models.Model):
                     vat_only_numeric = None
 
                 if vat_only_numeric:
-                    query = self.env['res.partner']._where_calc(extra_domain + [('active', '=', True)])
-                    tables, where_clause, where_params = query.get_sql()
+                    query = self.env['res.partner']._where_calc(extra_domain + [('active', '=', True)], with_cte=True)
+                    cte_clause, tables, where_clause, where_params = query.get_sql()
 
                     if country_prefix:
                         vat_prefix_regex = f'({country_prefix})?'
@@ -555,6 +555,7 @@ class AccountEdiFormat(models.Model):
                         vat_prefix_regex = '([A-z]{2})?'
 
                     self._cr.execute(f'''
+                        {cte_clause}
                         SELECT res_partner.id
                         FROM {tables}
                         WHERE {where_clause}

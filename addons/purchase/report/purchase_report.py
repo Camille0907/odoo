@@ -182,7 +182,7 @@ class PurchaseReport(models.Model):
 
         if avg_days_to_purchase:
             self.check_access_rights('read')
-            query = """ SELECT AVG(days_to_purchase.po_days_to_purchase)::decimal(16,2) AS avg_days_to_purchase
+            query = """ %s SELECT AVG(days_to_purchase.po_days_to_purchase)::decimal(16,2) AS avg_days_to_purchase
                           FROM (
                               SELECT extract(epoch from age(po.date_approve,po.create_date))/(24*60*60) AS po_days_to_purchase
                               FROM purchase_order po
@@ -192,9 +192,9 @@ class PurchaseReport(models.Model):
                     """
 
             subdomain = AND([domain, [('company_id', '=', self.env.company.id), ('date_approve', '!=', False)]])
-            subtables, subwhere, subparams = expression(subdomain, self).query.get_sql()
+            cte_clause, subtables, subwhere, subparams = expression(subdomain, self).query.get_sql()
 
-            self.env.cr.execute(query % (subtables, subwhere), subparams)
+            self.env.cr.execute(query % (cte_clause, subtables, subwhere), subparams)
             res[0].update({
                 '__count': 1,
                 avg_days_to_purchase.split(':')[0]: self.env.cr.fetchall()[0][0],
