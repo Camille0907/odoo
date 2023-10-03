@@ -442,7 +442,7 @@ class expression(object):
 
         # this object handles all the joins
         self.query = Query(model.env.cr, model._table, model._table_query, with_cte=self._with_cte) if query is None else query
-
+        self.query.expression(self.expression)
         # parse the domain expression
         self.parse()
 
@@ -775,6 +775,7 @@ class expression(object):
                         if isinstance(ids2, Query):
                             if not inverse_field.required:
                                 ids2.add_where(f'"{comodel._table}"."{inverse_field.name}" IS NOT NULL')
+                            #TODO ENSURE THIS IS OK
                             ctes, subquery, subparams = ids2.subselect(f'"{comodel._table}"."{inverse_field.name}"')
                         else:
                             # TODO need ctes?
@@ -844,6 +845,7 @@ class expression(object):
 
                     if isinstance(ids2, Query):
                         # rewrite condition in terms of ids2
+                        #TODO ENSURE THIS IS OK
                         ctes, subquery, params = ids2.subselect()
                         term_id2 = f"({subquery})"
                     else:
@@ -1018,9 +1020,7 @@ class expression(object):
                     query = '(%s."%s" IS NULL)' % (table_alias, left)
                 params = []
             elif isinstance(right, Query):
-                cte, subquery, subparams = right.subselect()
-                if cte:
-                    subquery = cte[0].split(' ', 1)[0]
+                cte , subquery, subparams = right.subselect()
                 query = '(%s."%s" %s (%s))' % (table_alias, left, operator, subquery)
                 params = subparams
             elif isinstance(right, (list, tuple)):

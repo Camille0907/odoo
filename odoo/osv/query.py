@@ -80,6 +80,7 @@ class Query(object):
         self.order = None
         self.limit = None
         self.offset = None
+        self.expression = None
 
     def add_table(self, alias, table=None):
         """ Add a table with a given alias to the from clause. """
@@ -148,8 +149,12 @@ class Query(object):
             (" OFFSET %d" % self.offset) if self.offset else "",
         )
         if cte_clause:
-            _logger.info("QUERY OPTIMIZED WITH CTE: %s" % cte_clause)
-            _logger.info("QUERY DETAILS: %s" % query_str)
+            _logger.info("+++ OPTIMIZED EXPRESSION: %s" %  self.expression)
+            _logger.info("+++ QUERY OPTIMIZED WITH CTE: %s" % cte_clause)
+            _logger.info("+++ QUERY DETAILS: %s" % query_str)
+        else:
+             _logger.info("--- UNOPTIMIZED EXPRESSION: %s" %  self.expression)
+             _logger.info("--- UNOPTIMIZED QUERY DETAILS: %s" % query_str)
         return query_str, params
 
     def subselect(self, *args):
@@ -162,13 +167,17 @@ class Query(object):
 
         if self._with_cte:
             cte_clause, from_clause, where_clause, params = self.get_sql()
+            query_str = "(SELECT {} FROM {})".format(
+                ", ".join(args or [f'"{next(iter(self._tables))}".id']),
+                self._ctes[0].split(' ', 1)[0] 
+            ) 
         else:
             from_clause, where_clause, params = self.get_sql()
-        query_str = 'SELECT {} FROM {} WHERE {}'.format(
-            ", ".join(args or [f'"{next(iter(self._tables))}".id']),
-            from_clause,
-            where_clause or "TRUE",
-        )     
+            query_str = 'SELECT {} FROM {} WHERE {}'.format(
+                ", ".join(args or [f'"{next(iter(self._tables))}".id']),
+                from_clause,
+                where_clause or "TRUE",
+            )     
         return self._ctes, query_str, params
 
     def get_sql(self):
