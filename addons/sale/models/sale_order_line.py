@@ -850,6 +850,12 @@ class SaleOrderLine(models.Model):
                         amount_invoiced -= invoice_line.currency_id._convert(invoice_line.price_subtotal, line.currency_id, line.company_id, invoice_date)
             line.untaxed_amount_invoiced = amount_invoiced
 
+    def _needs_remaining_calculation(self, inv_lines):
+        return any(inv_lines.mapped(lambda l: l.discount != self.discount))
+    
+    def _get_discount(self):
+        return self.discount
+
     @api.depends('state', 'price_reduce', 'product_id', 'untaxed_amount_invoiced', 'qty_delivered', 'product_uom_qty')
     def _compute_untaxed_amount_to_invoice(self):
         """ Total of remaining amount to invoice on the sale order line (taxes excl.) as
@@ -869,7 +875,7 @@ class SaleOrderLine(models.Model):
                 # reduce (to include discount) without using `compute_all()` method on taxes.
                 price_subtotal = 0.0
                 uom_qty_to_consider = line.qty_delivered if line.product_id.invoice_policy == 'delivery' else line.product_uom_qty
-                price_reduce = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
+                price_reduce = line.price_unit * (1 - (line._get_discount() or 0.0) / 100.0)
                 price_subtotal = price_reduce * uom_qty_to_consider
                 if len(line.tax_id.filtered(lambda tax: tax.price_include)) > 0:
                     # As included taxes are not excluded from the computed subtotal, `compute_all()` method
@@ -882,7 +888,7 @@ class SaleOrderLine(models.Model):
                         product=line.product_id,
                         partner=line.order_id.partner_shipping_id)['total_excluded']
                 inv_lines = line._get_invoice_lines()
-                if any(inv_lines.mapped(lambda l: l.discount != line.discount)):
+                if line._needs_remaining_calculation(inv_lines):
                     # In case of re-invoicing with different discount we try to calculate manually the
                     # remaining amount to invoice
                     amount = 0
