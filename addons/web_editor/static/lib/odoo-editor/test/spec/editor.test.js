@@ -1,5 +1,5 @@
 import { OdooEditor } from '../../src/OdooEditor.js';
-import { getTraversedNodes } from '../../src/utils/utils.js';
+import { getTraversedNodes, getDeepRange } from '../../src/utils/utils.js';
 import {
     BasicEditor,
     deleteBackward,
@@ -19,6 +19,10 @@ import {
 async function twoDeleteForward(editor) {
     await deleteForward(editor);
     await deleteForward(editor);
+}
+
+const getCurrentCommandNames = powerbox => {
+    return [...powerbox.el.querySelectorAll('.oe-commandbar-commandTitle')].map(c => c.innerText);
 }
 
 describe('Editor', () => {
@@ -2551,6 +2555,39 @@ X[]
                     contentAfter: '<p>a[]l</p>',
                 });
             });
+            it('should remove a table if completely selected', async () => {
+                await testEditor(BasicEditor, {
+                    contentBefore: unformat(
+                        `<table><tbody>
+                        <tr><td>[a</td><td>b</td><td>c</td></tr>
+                        <tr><td>d</td><td>e</td><td>f</td></tr>
+                        <tr><td>g</td><td>h</td><td>i</td></tr>
+                        </tbody></table>
+                        <p>]<br></p>`,
+                    ),
+                    stepFunction: async editor => {
+                        await deleteBackward(editor);
+                        getDeepRange(editor.editable, { select: true });
+                    },
+                    contentAfter: `<p>[]<br></p>`,
+                });
+            });
+            it('should remove an empty table placed at end if completely selected', async () => {
+                await testEditor(BasicEditor, {
+                    contentBefore: unformat(
+                        `<p>[<br></p>
+                        <table><tbody>
+                        <tr><td><br></td><td><br></td><td><br></td></tr>
+                        <tr><td><br></td><td><br></td><td><br></td></tr>
+                        <tr><td><br></td><td><br></td><td><br>]</td></tr>
+                        </tbody></table>`,
+                    ),
+                    stepFunction: async editor => {
+                        await deleteBackward(editor);
+                    },
+                    contentAfter: `<p>[]<br></p>`,
+                });
+            });
             it('should only remove the text content and full rows a partly selected table', async () => {
                 await testEditor(BasicEditor, {
                     contentBefore: unformat(
@@ -4152,6 +4189,52 @@ X[]
                 contentAfter: '<p>a<font style="color: rgb(255, 0, 0);">[b</font>' +
                     '<a class="btn"><font style="color: rgb(255, 0, 0);">c</font></a>' +
                     '<font style="color: rgb(255, 0, 0);">d]</font>e</p>',
+            });
+        });
+    });
+    describe('powerbox', () => {
+        it('should not filter the powerbox contents when collaborator type on different block node', async () => {
+            await testEditor(BasicEditor, {
+                contentBefore: '<p>ab</p><p>c[]d</p>',
+                stepFunction: async (editor) => {
+                    await insertText(editor, '/');
+                    await insertText(editor, 'heading');
+                    const firstBlock = editor.editable.firstChild;
+                    const secondBlock = editor.editable.lastChild;
+                    await setTestSelection({
+                        anchorNode: firstBlock, anchorOffset: 1,
+                        focusNode: firstBlock, focusOffset: 1,
+                    }, editor.document);
+                    window.chai.expect(editor.commandBar._active).to.be.true;
+                    // Mimick a collaboration scenario where another user types
+                    // random text, using `insertText` as it won't trigger keyup.
+                    editor.execCommand('insertText', 'random text');
+                    window.chai.expect(editor.commandBar._active).to.be.true;
+                    await setTestSelection({
+                        anchorNode: secondBlock, anchorOffset: 9,
+                        focusNode: secondBlock, focusOffset: 9,
+                    }, editor.document);
+                    window.chai.expect(editor.commandBar._active).to.be.true;
+                    await insertText(editor, '1');
+                    window.chai.expect(editor.commandBar._active).to.be.true;
+                    window.chai.expect(getCurrentCommandNames(editor.commandBar)).to.eql(['Heading 1']);
+                },
+            });
+        });
+        it('should close the powerbox if keyup event is called on other block', async () => {
+            await testEditor(BasicEditor, {
+                contentBefore: '<p>ab</p><p>c[]d</p>',
+                stepFunction: async (editor) => {
+                    const firstBlock = editor.editable.firstChild;
+                    await insertText(editor, '/');
+                    window.chai.expect(editor.commandBar._active).to.be.true;
+                    await setTestSelection({
+                        anchorNode: firstBlock, anchorOffset: 1,
+                        focusNode: firstBlock, focusOffset: 1,
+                    }, editor.document);
+                    triggerEvent(editor.editable, 'keyup');
+                    window.chai.expect(editor.commandBar._active).to.be.false;
+                },
             });
         });
     });

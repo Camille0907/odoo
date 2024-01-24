@@ -890,7 +890,7 @@ class Picking(models.Model):
     def _check_move_lines_map_quant_package(self, package):
         """ This method checks that all product of the package (quant) are well present in the move_line_ids of the picking. """
         all_in = True
-        pack_move_lines = self.move_line_ids.filtered(lambda ml: ml.package_id == package)
+        pack_move_lines = self.move_line_ids.filtered(lambda ml: ml.package_id == package and ml.product_id.type == 'product')
         keys = ['product_id', 'lot_id']
         keys_ids = ["{}.id".format(fname) for fname in keys]
         precision_digits = self.env['decimal.precision'].precision_get('Product Unit of Measure')
@@ -1419,25 +1419,29 @@ class Picking(models.Model):
                 })
         return package
 
+    def _package_move_lines(self):
+        picking_move_lines = self.move_line_ids
+        if (
+            not self.picking_type_id.show_reserved
+            and not self.immediate_transfer
+            and not self.env.context.get('barcode_view')
+        ):
+            picking_move_lines = self.move_line_nosuggest_ids
+
+        move_line_ids = picking_move_lines.filtered(lambda ml:
+            float_compare(ml.qty_done, 0.0, precision_rounding=ml.product_uom_id.rounding) > 0
+            and not ml.result_package_id
+        )
+        if not move_line_ids:
+            move_line_ids = picking_move_lines.filtered(lambda ml: float_compare(ml.product_uom_qty, 0.0,
+                                    precision_rounding=ml.product_uom_id.rounding) > 0 and float_compare(ml.qty_done, 0.0,
+                                    precision_rounding=ml.product_uom_id.rounding) == 0)
+        return move_line_ids
+
     def action_put_in_pack(self):
         self.ensure_one()
         if self.state not in ('done', 'cancel'):
-            picking_move_lines = self.move_line_ids
-            if (
-                not self.picking_type_id.show_reserved
-                and not self.immediate_transfer
-                and not self.env.context.get('barcode_view')
-            ):
-                picking_move_lines = self.move_line_nosuggest_ids
-
-            move_line_ids = picking_move_lines.filtered(lambda ml:
-                float_compare(ml.qty_done, 0.0, precision_rounding=ml.product_uom_id.rounding) > 0
-                and not ml.result_package_id
-            )
-            if not move_line_ids:
-                move_line_ids = picking_move_lines.filtered(lambda ml: float_compare(ml.product_uom_qty, 0.0,
-                                     precision_rounding=ml.product_uom_id.rounding) > 0 and float_compare(ml.qty_done, 0.0,
-                                     precision_rounding=ml.product_uom_id.rounding) == 0)
+            move_line_ids = self._package_move_lines()
             if move_line_ids:
                 res = self._pre_put_in_pack_hook(move_line_ids)
                 if not res:

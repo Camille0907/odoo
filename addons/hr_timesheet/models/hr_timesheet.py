@@ -46,7 +46,7 @@ class AccountAnalyticLine(models.Model):
 
     task_id = fields.Many2one(
         'project.task', 'Task', compute='_compute_task_id', store=True, readonly=False, index=True,
-        domain="[('project_id.allow_timesheets', '=', True), ('project_id', '=?', project_id)]")
+        domain="[('allow_timesheets', '=', True), ('project_id', '=?', project_id)]")
     project_id = fields.Many2one(
         'project.project', 'Project', compute='_compute_project_id', store=True, readonly=False,
         domain=_domain_project_id)
@@ -313,3 +313,21 @@ class AccountAnalyticLine(models.Model):
     def _employee_timesheet_cost(self):
         self.ensure_one()
         return self.employee_id.timesheet_cost or 0.0
+
+    @api.model
+    def _ensure_uom_hours(self):
+        uom_hours = self.env.ref('uom.product_uom_hour', raise_if_not_found=False)
+        if not uom_hours:
+            uom_hours = self.env['uom.uom'].create({
+                'name': "Hours",
+                'category_id': self.env.ref('uom.uom_categ_wtime').id,
+                'factor': 8,
+                'uom_type': "smaller",
+            })
+            self.env['ir.model.data'].create({
+                'name': 'product_uom_hour',
+                'model': 'uom.uom',
+                'module': 'uom',
+                'res_id': uom_hours.id,
+                'noupdate': True,
+            })

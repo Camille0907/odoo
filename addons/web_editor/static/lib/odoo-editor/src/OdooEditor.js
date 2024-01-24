@@ -1385,13 +1385,9 @@ export class OdooEditor extends EventTarget {
             for (const link of links) {
                 if (
                     link &&
-                    !isBlock(link) &&
-                    link.textContent !== '' &&
-                    !(
-                        // Ignore links wrapped around a single image.
-                        link.children.length === 1 &&
-                        link.firstElementChild.nodeName === 'IMG'
-                    )
+                    link.textContent.trim() !== '' &&
+                    // Only add the ZWS for simple (possibly styled) text links.
+                    ![link, ...link.querySelectorAll('*')].some(isBlock)
                 ) {
                     link.prepend(this._createLinkZws('start'));
                     // Only add the ZWS at the end if the link is in selection.
@@ -1544,9 +1540,13 @@ export class OdooEditor extends EventTarget {
             end = parent;
         }
         // Same with the start container
+        const table = closestElement(start, 'table');
+        // For selection starting at the beginning of the table and ending outside the
+        // table, the block should not be considered visible in order to remove the table.
+        const noBlocks = (table && firstLeaf(table) === start && !table.contains(end)) ? false : true;
         while (
             start &&
-            isRemovableInvisible(start) &&
+            isRemovableInvisible(start, noBlocks) &&
             !(endIsStart && start.contains(range.startContainer))
         ) {
             const parent = start.parentNode;
@@ -2795,7 +2795,6 @@ export class OdooEditor extends EventTarget {
      */
     _onSelectionChange() {
         const selection = this.document.getSelection();
-        console.log(selection);
         // When CTRL+A in the editor, sometimes the browser use the editable
         // element as an anchor & focus node. This is an issue for the commands
         // and the toolbar so we need to fix the selection to be based on the
@@ -3108,112 +3107,10 @@ export class OdooEditor extends EventTarget {
         }
     }
 
-    _fixSelectionOnContenteditableFalse() {
-        // When the browser set the selection inside a node that is
-        // contenteditable=false, it breaks the edition upon keystroke. Move the
-        // selection so that it remain in an editable area. An example of this
-        // case happend when the selection goes into a fontawesome node.
-
-        const selection = this.document.getSelection();
-        if (!selection.rangeCount) {
-            return;
-        }
-        const range = selection.getRangeAt(0);
-        const newRange = range.cloneRange();
-        const startContainer = closestElement(range.startContainer);
-        const endContainer = closestElement(range.endContainer);
-
-        /**
-         * Get last not editable node if the `node` is within `root` and is a
-         * non editable node.
-         *
-         * Otherwise return `undefined`.
-         *
-         * Example:
-         *
-         * ```html
-         * <div class="root" contenteditable="true">
-         *     <div class="A">
-         *         <div class="B" contenteditable="false">
-         *             <div class="C">
-         *             </div>
-         *         </div>
-         *     </div>
-         * </div>
-         * ```
-         *
-         * ```js
-         * _getLastNotEditableAncestorOfNotEditable(document.querySelector(".C")) // return "B"
-         * ```
-         */
-        function _getLastNotEditableAncestorOfNotEditable(node, root) {
-            let currentNode = node;
-            let lastEditable;
-            if (!ancestors(node, root).includes(root)) {
-                return;
-            }
-            while (currentNode && currentNode !== root) {
-                if (currentNode.isContentEditable) {
-                    return lastEditable;
-                } else if (currentNode.isContentEditable === false) {
-                    // By checking that the node is contentEditable === false,
-                    // we ensure at the same time that the currentNode is a
-                    // HTMLElement.
-                    lastEditable = currentNode;
-                }
-                currentNode = currentNode.parentElement;
-            }
-            return lastEditable;
-        }
-
-        const startContainerNotEditable = _getLastNotEditableAncestorOfNotEditable(
-            startContainer,
-            this.editable,
-        );
-        const endContainerNotEditable = _getLastNotEditableAncestorOfNotEditable(
-            endContainer,
-            this.editable,
-        );
-        const bothNotEditable = startContainerNotEditable && endContainerNotEditable;
-
-        if (startContainerNotEditable) {
-            if (startContainerNotEditable.previousSibling) {
-                newRange.setStart(
-                    startContainerNotEditable.previousSibling,
-                    startContainerNotEditable.previousSibling.length,
-                );
-                if (bothNotEditable) {
-                    newRange.setEnd(
-                        startContainerNotEditable.previousSibling,
-                        startContainerNotEditable.previousSibling.length,
-                    );
-                }
-            } else {
-                newRange.setStart(startContainerNotEditable.parentElement, 0);
-                if (bothNotEditable) {
-                    newRange.setEnd(startContainerNotEditable.parentElement, 0);
-                }
-            }
-        }
-        if (!bothNotEditable && endContainerNotEditable) {
-            if (endContainerNotEditable.nextSibling) {
-                newRange.setEnd(endContainerNotEditable.nextSibling, 0);
-            } else {
-                newRange.setEnd(...endPos(endContainerNotEditable.parentElement));
-            }
-        }
-        if (startContainerNotEditable || endContainerNotEditable) {
-            selection.removeAllRanges();
-            selection.addRange(newRange);
-        }
-    }
-
     _onMouseup(ev) {
         this._currentMouseState = ev.type;
 
         this._fixFontAwesomeSelection();
-
-        this._fixSelectionOnContenteditableFalse();
     }
 
     _onMouseDown(ev) {
@@ -3285,7 +3182,6 @@ export class OdooEditor extends EventTarget {
             }
             this._onKeyupResetContenteditableNodes = [];
         }
-        this._fixSelectionOnContenteditableFalse();
     }
 
     _onDoumentMousedown(event) {
