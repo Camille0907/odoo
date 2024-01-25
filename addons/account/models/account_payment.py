@@ -186,7 +186,7 @@ class AccountPayment(models.Model):
         for line in self.move_id.line_ids:
             if line.account_id in self._get_valid_liquidity_accounts():
                 liquidity_lines += line
-            elif line.account_id.internal_type in ('receivable', 'payable') or line.account_id == line.company_id.transfer_account_id:
+            elif line.account_id.internal_type in ('receivable', 'payable') or line.account_id == line.company_id.transfer_account_id or line.account_id not in counterpart_lines.mapped("account_id"):
                 counterpart_lines += line
             else:
                 writeoff_lines += line
@@ -768,12 +768,15 @@ class AccountPayment(models.Model):
                     ))
 
                 if len(counterpart_lines) != 1:
-                    raise UserError(_(
-                        "Journal Entry %s is not valid. In order to proceed, the journal items must "
-                        "include one and only one receivable/payable account (with an exception of "
-                        "internal transfers).",
-                        move.display_name,
-                    ))
+                # if len(counterpart_lines) != 1 and len(counterpart_lines.mapped("account_id")) != 1:
+                    import pdb;pdb.set_trace()
+                    if len(counterpart_lines.mapped("account_id")) != 1:
+                        raise UserError(_(
+                            "Journal Entry %s is not valid. In order to proceed, the journal items must "
+                            "include one and only one receivable/payable account (with an exception of "
+                            "internal transfers).",
+                            move.display_name,
+                        ))
 
                 if writeoff_lines and len(writeoff_lines.account_id) != 1:
                     raise UserError(_(
