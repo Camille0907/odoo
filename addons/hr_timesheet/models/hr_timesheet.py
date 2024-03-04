@@ -18,6 +18,7 @@ class AccountAnalyticLine(models.Model):
         last_timesheet_ids = self.search([
             ('employee_id', '=', employee_id),
             ('project_id', '!=', False),
+            ('project_id.allow_timesheets','=',True)
         ], limit=5)
         if len(last_timesheet_ids.project_id) == 1:
             return last_timesheet_ids.project_id.id
