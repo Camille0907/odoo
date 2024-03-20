@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 from lxml import etree
 
 from odoo import models, fields, api, Command, _
@@ -751,6 +752,7 @@ class AccountPayment(models.Model):
             move = pay.move_id
             move_vals_to_write = {}
             payment_vals_to_write = {}
+            is_move_before_fix_limit_date = True if move.date < datetime.strptime('2023-01-01', '%Y-%m-%d').date() else False
 
             if 'journal_id' in changed_fields:
                 if pay.journal_id.type not in ('bank', 'cash'):
@@ -759,8 +761,7 @@ class AccountPayment(models.Model):
             if 'line_ids' in changed_fields:
                 all_lines = move.line_ids
                 liquidity_lines, counterpart_lines, writeoff_lines = pay._seek_for_lines()
-
-                if len(liquidity_lines) != 1:
+                if len(liquidity_lines) != 1 and not is_move_before_fix_limit_date:
                     raise UserError(_(
                         "Journal Entry %s is not valid. In order to proceed, the journal items must "
                         "include one and only one outstanding payments/receipts account.",
@@ -800,7 +801,7 @@ class AccountPayment(models.Model):
                 else:
                     partner_type = 'supplier'
 
-                liquidity_amount = liquidity_lines.amount_currency
+                liquidity_amount = sum(liquidity_lines.mapped("amount_currency"))
 
                 move_vals_to_write.update({
                     'currency_id': liquidity_lines.currency_id.id,
