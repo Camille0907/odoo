@@ -16,6 +16,7 @@
 # Bonny Useful <bonny.useful@gmail.com>, 2022
 # Ikhsanul Wirsa <iwirsa02@outlook.co.id>, 2022
 # Ryanto The <ry.the77@gmail.com>, 2022
+# Edi Santoso <repopamor@gmail.com>, 2023
 # Abe Manyo, 2023
 # 
 msgid ""
@@ -310,7 +311,7 @@ msgstr "Konfigurasi"
 #. module: hr_timesheet
 #: model:ir.model,name:hr_timesheet.model_project_task_create_timesheet
 msgid "Create Timesheet from task"
-msgstr ""
+msgstr "Buat Timesheet dari task"
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_project_task_create_timesheet__create_uid
@@ -418,7 +419,7 @@ msgstr "Durasi (Hari)"
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table
 msgid "Duration (Hours)"
-msgstr ""
+msgstr "Durasi (Jam)"
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_report_project_task_user__hours_effective
@@ -887,7 +888,7 @@ msgstr "Kegiatan"
 #. module: hr_timesheet
 #: model:ir.model.fields,help:hr_timesheet.field_project_task_create_timesheet__task_id
 msgid "Task for which we are creating a sales order"
-msgstr ""
+msgstr "Task untuk mana kita membuat sales order"
 
 #. module: hr_timesheet
 #: model:ir.actions.act_window,name:hr_timesheet.timesheet_action_task
@@ -920,7 +921,7 @@ msgstr "Project Internal perusahaan harus berada di perusahaan tersebut."
 #. module: hr_timesheet
 #: model:ir.model.constraint,message:hr_timesheet.constraint_project_task_create_timesheet_time_positive
 msgid "The timesheet's time must be positive"
-msgstr ""
+msgstr "Waktu timesheet harus positif"
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_my_timesheets
@@ -1243,6 +1244,8 @@ msgstr "Total:"
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.res_config_settings_view_form
 msgid "Track your time from anywhere, even offline, with our web/mobile apps"
 msgstr ""
+"Lacak waktu Anda dari mana saja, meskipun luring, dengan aplikasi web/mobile"
+" Kami"
 
 #. module: hr_timesheet
 #: model_terms:ir.actions.act_window,help:hr_timesheet.act_hr_timesheet_line
