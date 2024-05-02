@@ -52,11 +52,7 @@ class StockReplenishmentInfo(models.TransientModel):
 
     @api.depends('orderpoint_id')
     def _compute_json_replenishment_history(self):
-        settings = self.env["res.config.settings"].sudo().search([])
-        if len(settings) == 1:
-            period_setting = settings.stock_replenishment_info_periods
-        else:
-            period_setting = settings[0].stock_replenishment_info_periods
+        period_setting = self.orderpoint_id.company_id.stock_replenishment_info_periods
         today = fields.Datetime.now()
         get_period = get_fiscal_year if period_setting == 'year' else get_month
         group_period = "date:year" if period_setting == 'year' else "date:month"
