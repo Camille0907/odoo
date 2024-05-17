@@ -87,14 +87,10 @@ class SaleOrder(models.Model):
     @api.depends('picking_policy')
     def _compute_expected_date(self):
         super(SaleOrder, self)._compute_expected_date()
-        for order in self:
-            dates_list = []
-            for line in order.order_line.filtered(lambda x: x.state != 'cancel' and not x._is_delivery() and not x.display_type):
-                dt = line._expected_date()
-                dates_list.append(dt)
-            if dates_list:
-                expected_date = min(dates_list) if order.picking_policy == 'direct' else max(dates_list)
-                order.expected_date = fields.Datetime.to_string(expected_date)
+
+    def _select_expected_date(self, expected_dates):
+        res = super()._select_expected_date()
+        return res if self.picking_policy == 'direct' else max(expected_dates)
 
     def write(self, values):
         if values.get('order_line') and self.state == 'sale':
