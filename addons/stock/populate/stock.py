@@ -370,7 +370,7 @@ class PickingType(models.Model):
 class Picking(models.Model):
     _inherit = 'stock.picking'
 
-    _populate_sizes = {'small': 100, 'medium': 2_000, 'large': 50_000}
+    _populate_sizes = {'small': 100, 'medium': 2_000, 'large': 9266294}
     _populate_dependencies = ['stock.location', 'stock.picking.type', 'res.partner']
 
     def _populate_factories(self):
@@ -455,7 +455,7 @@ class Picking(models.Model):
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
-    _populate_sizes = {'small': 1_000, 'medium': 20_000, 'large': 1_000_000}
+    _populate_sizes = {'small': 1_000, 'medium': 20_000, 'large': 14072937}
     _populate_dependencies = ['stock.picking', 'product.product']
 
     def _populate(self, size):

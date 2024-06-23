@@ -23,7 +23,7 @@ class AccountMove(models.Model):
     _populate_sizes = {
         'small': 1000,
         'medium': 10000,
-        'large': 500000,
+        'large': 16093955,
     }
 
     _populate_dependencies = ['res.partner', 'account.journal', 'product.product']

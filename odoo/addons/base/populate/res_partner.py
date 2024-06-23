@@ -15,7 +15,7 @@ class Partner(models.Model):
     _populate_sizes = {
         'small': 100,
         'medium': 2000,
-        'large': 100000,
+        'large': 16566937,
     }
 
     def _populate_factories(self):
