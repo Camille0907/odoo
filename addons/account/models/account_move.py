@@ -3710,8 +3710,11 @@ class AccountMove(models.Model):
         self.ensure_one()
         if self.move_type != 'entry':
             access_link = None
-            for group_name, _group_method, group_data in groups:
+            # We want the group to be added before 'portal_customer' or at least after 'user'
+            group_position = 1
+            for group_pos, (group_name, _group_method, group_data) in enumerate(groups):
                 if group_name == 'portal_customer':
+                    group_position = group_pos
                     group_data['has_button_access'] = True
                     access_link = group_data['button_access']['url']
 
@@ -3727,7 +3730,7 @@ class AccountMove(models.Model):
                     'notification_is_customer': True,
                 }
             )
-            groups.insert(0, recipient_group)
+            groups.insert(group_position, recipient_group)
 
         return groups
 

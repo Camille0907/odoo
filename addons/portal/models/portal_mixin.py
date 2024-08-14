@@ -71,18 +71,18 @@ class PortalMixin(models.AbstractModel):
             local_msg_vals.update(customer.signup_get_auth_param()[customer.id])
             access_link = self._notify_get_action_link('view', **local_msg_vals)
 
-            new_group = [
-                ('portal_customer', lambda pdata: pdata['id'] == customer.id, {
+            new_group = (
+                'portal_customer', lambda pdata: pdata['id'] == customer.id, {
                     'has_button_access': False,
                     'button_access': {
                         'url': access_link,
                     },
                     'notification_is_customer': True,
-                })
-            ]
-        else:
-            new_group = []
-        return new_group + groups
+                }
+            )
+            # Insert the new group between user and portal
+            groups.insert(1, new_group)
+        return groups
 
     def get_access_action(self, access_uid=None):
         """ Instead of the classic form view, redirect to the online document for
