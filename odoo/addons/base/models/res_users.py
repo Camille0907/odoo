@@ -1278,8 +1278,16 @@ class GroupsImplied(models.Model):
                            FROM res_groups_users_rel r
                            JOIN group_imply i ON (r.gid = i.hid)
                           WHERE i.gid = %(gid)s
+                    RETURNING uid
                 """, dict(gid=group.id))
-            self._check_one_user_type()
+            # notify the ORM about the updated user groups
+            updated_user_ids = [row[0] for row in self.env.cr.fetchall()]
+            updated_users = self.env['res.users'].browse(updated_user_ids)
+            updated_users.invalidate_recordset(['groups_id'])
+            updated_users.modified(['groups_id'])
+            # explicitly check constraints
+            updated_users._validate_fields(['groups_id'])
+            self._validate_fields(['users'])
         return res
 
     def _apply_group(self, implied_group):
